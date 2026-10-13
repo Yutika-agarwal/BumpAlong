@@ -17,7 +17,7 @@ export type Placement = (typeof PLACEMENTS)[number];
 export type Platform = "web" | "ios" | "android";
 
 export interface AffiliateConfig {
-  /** Store ID from Associates Central, e.g. "bumpalong-20". */
+  /** Store ID from Associates Central, e.g. "zreviews0d-20". */
   tag: string;
   /** Optional tracking ID per placement; falls back to `tag`. */
   placementTags?: Partial<Record<Placement, string>>;

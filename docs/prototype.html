@@ -209,14 +209,14 @@ const CAT={}; CATALOG.forEach(c=>CAT[c.cat]=c);
 const CATEGORIES=CATALOG.map(c=>c.cat);
 const TIER_PTS={Small:50,Medium:150,Large:300};
 // Amazon Associates links. Text only, straight to amazon.com with the tag (no prices or images without PA-API).
-const AMZ_TAG="bumpalong-20", AMZ_DISCLOSURE="As an Amazon Associate, Bumpalong earns from qualifying purchases.";
+const AMZ_TAG="zreviews0d-20", AMZ_DISCLOSURE="As an Amazon Associate, Bumpalong earns from qualifying purchases.";
 const AMZ_PRODUCTS=[{asin:"B00T3ZSS1Q",name:"Spectra S1",aliases:["spectra s1"],parts:"Spectra flanges duckbill valves backflow protector"},{asin:"B01H5RTTA4",name:"Graco SnugRide 35",aliases:["snugride"]},{asin:"B07FFW4F7S",name:"Halo BassiNest",aliases:["bassinest","halo bassinet"]}];
 function amzSearch(q,tag){return "https://www.amazon.com/s?"+new URLSearchParams({k:q,tag:tag||AMZ_TAG})}
 function shopFor(l,placement){
   const t=l.title.toLowerCase(),p=AMZ_PRODUCTS.find(x=>x.aliases.some(a=>t.includes(a))),sub=(l.sub||l.cat).replace(/\s*\(.*\)/,"");
   if(placement==="parts") return p&&p.parts?{label:`New parts for the ${p.name} on Amazon`,url:amzSearch(p.parts)}:null;
   if(placement==="new") return MUST_BE_NEW.test(l.sub||"")?{label:`Buy ${sub.toLowerCase()} new on Amazon`,url:amzSearch(sub)}:null;
-  if(placement==="lost") return p?{label:`Get a ${p.name} on Amazon`,url:`https://www.amazon.com/dp/${p.asin}?tag=bumpalong-lost-20`}:{label:`Shop ${sub.toLowerCase()} on Amazon`,url:amzSearch(sub,"bumpalong-lost-20")};
+  if(placement==="lost") return p?{label:`Get a ${p.name} on Amazon`,url:`https://www.amazon.com/dp/${p.asin}?tag=${AMZ_TAG}`}:{label:`Shop ${sub.toLowerCase()} on Amazon`,url:amzSearch(sub)};
   return null;
 }
 function shopBox(link,lead){return link?`<div class="shop">${lead?`<span class="small">${lead}</span>`:""}<a href="${link.url}" target="_blank" rel="noopener sponsored">${esc(link.label)} ↗</a><small>${AMZ_DISCLOSURE}</small></div>`:""}
