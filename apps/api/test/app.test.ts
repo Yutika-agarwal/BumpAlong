@@ -7,12 +7,12 @@ const T0 = new Date(Date.UTC(2026, 9, 13, 12));
 function setup() {
   let clock = T0;
   const store = new MemoryStore();
-  const app = buildApp(store, () => clock);
+  const app = buildApp(store, () => clock, { tag: "bumpalong-20", placementTags: { lost_draw: "bumpalong-lost-20" }, platforms: ["web"] });
   const as = (user: string) => ({ "x-user-id": user });
   return { app, store, as, advance: (h: number) => (clock = new Date(clock.getTime() + h * 3600e3)) };
 }
 
-const pump = { title: "Spectra S1", category: "Nursing and pumping", subcategory: "Breast pumps", condition: "Gently used", pump: { type: "closed", personalParts: "na" } };
+const pump = { title: "Spectra S1", model: "Spectra S1 Plus", category: "Nursing and pumping", subcategory: "Breast pumps", condition: "Gently used", pump: { type: "closed", personalParts: "na" } };
 
 describe("api", () => {
   it("serves the catalog", async () => {
@@ -76,5 +76,21 @@ describe("api", () => {
     advance(3);
     const r = await app.inject({ method: "POST", url: `/listings/${listing.id}/interest`, headers: as("a") });
     expect(r.json().error).toBe("claim_window_closed");
+  });
+
+  it("adds Amazon links on web only, and logs clicks", async () => {
+    const { app, as, store } = setup();
+    const listing = (await app.inject({ method: "POST", url: "/listings", headers: as("g"), payload: pump })).json().listing;
+    expect(listing.shop).toHaveLength(1);
+    expect(listing.shop[0]).toMatchObject({ placement: "replacement_parts", label: "New parts for the Spectra S1 on Amazon" });
+    expect((await app.inject({ method: "GET", url: "/listings?platform=ios" })).json().listings[0].shop).toEqual([]);
+
+    const lost = (await app.inject({ method: "GET", url: `/listings/${listing.id}/shop?placement=lost_draw` })).json();
+    expect(lost.link.url).toBe("https://www.amazon.com/dp/B00T3ZSS1Q?tag=bumpalong-lost-20");
+    expect((await app.inject({ method: "GET", url: `/listings/${listing.id}/shop?placement=popup` })).statusCode).toBe(400);
+
+    const click = await app.inject({ method: "POST", url: "/events/shop-click", headers: as("a"), payload: { listingId: listing.id, placement: "lost_draw" } });
+    expect(click.statusCode).toBe(204);
+    expect(store.shopClicks).toHaveLength(1);
   });
 });

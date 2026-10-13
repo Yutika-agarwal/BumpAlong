@@ -10,6 +10,8 @@ export interface ListingDraft {
   category: string;
   subcategory: string;
   condition: Condition;
+  /** Brand and model, free text. Used for recall checks and product matching. */
+  model?: string;
   carSeat?: { expires?: string; crash?: "no" | "yes" | "unsure"; model?: string };
   pump?: { type: "none" | "closed" | "open"; personalParts: "na" | "sealed" | "used" };
   formula?: "na" | "sealed" | "open";
@@ -115,7 +117,7 @@ export function checkListing(draft: ListingDraft, now: Date = new Date()): Safet
     else if (cs.crash === "unsure") err("car_seat_crash_unknown", "If you're not sure about crash history, the seat can't be listed.");
     else if (!cs.crash) err("car_seat_crash_missing", "Tell us whether the seat has been in a crash.");
     else badges.push("Never in a crash (owner attests)");
-    if (!cs.model?.trim()) warn("model_missing", "Add the brand and model so we can run the recall check.");
+    if (!(cs.model ?? draft.model)?.trim()) warn("model_missing", "Add the brand and model so we can run the recall check.");
   }
 
   if (draft.category === "Nursing and pumping" && draft.pump) {
@@ -131,7 +133,7 @@ export function checkListing(draft: ListingDraft, now: Date = new Date()): Safet
 
   if (draft.category === "Sleep" || draft.category === "Nursery furniture") {
     if (draft.sleep?.modified) err("sleep_modified", "Homemade or modified sleep products can't be listed.");
-    if (!draft.sleep?.model?.trim()) warn("model_missing", "Add the brand and model so we can run the recall check.");
+    if (!(draft.sleep?.model ?? draft.model)?.trim()) warn("model_missing", "Add the brand and model so we can run the recall check.");
     const year = draft.sleep?.yearMade;
     if (draft.subcategory === "Cribs" && year !== undefined && year < 2011) {
       err("crib_pre_2011", "Cribs made before 2011 don't meet the current federal crib standard.");

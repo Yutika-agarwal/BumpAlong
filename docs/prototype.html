@@ -92,6 +92,10 @@ main{padding-block:22px 90px;padding-inline:clamp(16px,3vw,36px);min-width:0;max
 .note.ok{background:var(--ok-soft);color:var(--ok)}
 .note.warn{background:var(--warn-soft);color:var(--warn)}
 .note.info{background:var(--sunk);color:var(--muted)}
+.shop{border:1px dashed var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.shop a{color:var(--brand);font-weight:600;text-decoration:none}
+.shop a:hover{text-decoration:underline}
+.shop small{color:var(--muted);font-size:.74rem}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.9rem}
 .kv dt{color:var(--muted)} .kv dd{margin:0}
 .timer{font-variant-numeric:tabular-nums;font-weight:600}
@@ -204,6 +208,18 @@ const SUB_TIER={"Pregnancy pillows":"Medium","Breast pumps":"Medium","Nursing pi
 const CAT={}; CATALOG.forEach(c=>CAT[c.cat]=c);
 const CATEGORIES=CATALOG.map(c=>c.cat);
 const TIER_PTS={Small:50,Medium:150,Large:300};
+// Amazon Associates links. Text only, straight to amazon.com with the tag (no prices or images without PA-API).
+const AMZ_TAG="bumpalong-20", AMZ_DISCLOSURE="As an Amazon Associate, Bumpalong earns from qualifying purchases.";
+const AMZ_PRODUCTS=[{asin:"B00T3ZSS1Q",name:"Spectra S1",aliases:["spectra s1"],parts:"Spectra flanges duckbill valves backflow protector"},{asin:"B01H5RTTA4",name:"Graco SnugRide 35",aliases:["snugride"]},{asin:"B07FFW4F7S",name:"Halo BassiNest",aliases:["bassinest","halo bassinet"]}];
+function amzSearch(q,tag){return "https://www.amazon.com/s?"+new URLSearchParams({k:q,tag:tag||AMZ_TAG})}
+function shopFor(l,placement){
+  const t=l.title.toLowerCase(),p=AMZ_PRODUCTS.find(x=>x.aliases.some(a=>t.includes(a))),sub=(l.sub||l.cat).replace(/\s*\(.*\)/,"");
+  if(placement==="parts") return p&&p.parts?{label:`New parts for the ${p.name} on Amazon`,url:amzSearch(p.parts)}:null;
+  if(placement==="new") return MUST_BE_NEW.test(l.sub||"")?{label:`Buy ${sub.toLowerCase()} new on Amazon`,url:amzSearch(sub)}:null;
+  if(placement==="lost") return p?{label:`Get a ${p.name} on Amazon`,url:`https://www.amazon.com/dp/${p.asin}?tag=bumpalong-lost-20`}:{label:`Shop ${sub.toLowerCase()} on Amazon`,url:amzSearch(sub,"bumpalong-lost-20")};
+  return null;
+}
+function shopBox(link,lead){return link?`<div class="shop">${lead?`<span class="small">${lead}</span>`:""}<a href="${link.url}" target="_blank" rel="noopener sponsored">${esc(link.label)} ↗</a><small>${AMZ_DISCLOSURE}</small></div>`:""}
 const MUST_BE_NEW=/\((new|sealed|unopened|new, sealed|sealed, in date|with new nipples)\)/;
 const BANNED=[["breast milk","Breast milk sharing isn't allowed. Accredited milk banks can help: see the safety page."],["breastmilk","Breast milk sharing isn't allowed. Accredited milk banks can help: see the safety page."],["crib bumper","Crib bumpers are banned for sale in the US because of suffocation risk."],["inclined sleeper","Inclined sleepers are banned under the Safe Sleep for Babies Act."],["drop-side","Drop-side cribs no longer meet the federal crib standard."],["drop side","Drop-side cribs no longer meet the federal crib standard."],["sleep positioner","Sleep positioners are a suffocation risk and can't be listed."],["baby walker","Baby walkers with wheels can't be listed because of fall risk."],["pacifier","Used pacifiers can't be shared for hygiene reasons."],["medication","Medications and supplements can't be listed."],["opened formula","Only unopened, sealed formula can be listed."],["weighted sleep","Weighted sleep sacks and swaddles go against safe sleep guidance, so they can't be listed."],["weighted swaddle","Weighted sleep sacks and swaddles go against safe sleep guidance, so they can't be listed."],["nipple shield","Used nipple shields can't be shared for hygiene reasons."]];
 const CHIPS=["Due next month","Baby is 0 to 3 months","First baby","Replacing a broken one","Can pick up today"];
@@ -282,6 +298,7 @@ function renderFeed(){
   <select id="dist" aria-label="Distance">${[1,3,5,10].map(d=>`<option value="${d}" ${+filter.dist===d?"selected":""}>Within ${d} mi</option>`).join("")}</select>
   <button class="btn small" data-act="saveSearch">Save this search</button></div>
   ${warn}
+  ${S.lastLost?(()=>{const l=S.listings.find(x=>x.id===S.lastLost.id);return l?`<div class="panel stack" style="margin-bottom:14px"><div class="row" style="justify-content:space-between"><b>Not this time for the ${esc(l.title)}</b><button class="btn small" data-act="dismissLost">Dismiss</button></div><span class="muted small">${esc(S.lastLost.who)} was picked. You're first backup if they don't accept, and we'll tell you if a similar one is listed.</span>${shopBox(shopFor(l,"lost"),"Need it sooner?")}</div>`:""})():""}
   ${items.length?`<div class="grid">${items.map(card).join("")}</div>`:`<div class="empty">Nothing matches yet. Try a wider distance, or <button class="btn small" data-nav="requests">post a request</button> so neighbors know what you need.</div>`}
   <div class="panel" style="margin-top:22px"><h2>What you can share${filter.stage?" for "+filter.stage.toLowerCase():""}</h2><p class="muted small">Tap a category to filter the feed. Items marked new or sealed can only be shared unopened.</p>
   <div class="catalog">${cats.map(c=>`<button class="catbox" data-catpick="${esc(c.cat)}"><header><span class="ico" style="background:${c.hue}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ART[c.art]||""}</svg></span><h3>${esc(c.cat)}</h3></header><div class="subs">${c.subs.map(x=>`<span>${esc(x)}</span>`).join("")}</div></button>`).join("")}</div></div>`;
@@ -318,7 +335,8 @@ function renderDetail(){
   <div class="two"><div class="stack"><div class="panel" style="padding:0;overflow:hidden">${thumb(l)}</div>
     <div class="panel"><h2>About this item</h2><p>${esc(l.desc)}</p>
     <dl class="kv"><dt>Category</dt><dd>${esc(l.cat)}${l.sub?" › "+esc(l.sub):""}${l.bundle?" (bundle)":""}</dd><dt>Good for</dt><dd>${(CAT[l.cat]||{stages:[]}).stages.join(", ")}</dd><dt>Condition</dt><dd>${esc(l.cond)}</dd>${l.size?`<dt>Size or age</dt><dd>${esc(l.size)}</dd>`:""}<dt>Pickup</dt><dd>${esc(l.pickup)}</dd><dt>Distance</dt><dd>${l.dist} mi (exact address shared after you pick a time)</dd><dt>Giver</dt><dd>${esc(l.owner)}</dd></dl>
-    ${l.safety.length?`<div class="row">${l.safety.map(s=>`<span class="pill ok">${esc(s)}</span>`).join("")}</div>`:""}</div></div>
+    ${l.safety.length?`<div class="row">${l.safety.map(s=>`<span class="pill ok">${esc(s)}</span>`).join("")}</div>`:""}
+    ${shopBox(shopFor(l,"parts"),"Used pumps need new personal parts.")}${shopBox(shopFor(l,"new"))}</div></div>
   <div class="panel"><div class="row"><span class="pill tier">${t} · ${cost} pts</span>${l.closes&&l.mode!=="First come"?`<span class="pill neutral">Draw in <span class="timer" data-closes="${l.closes}">${fmtLeft(l.closes-Date.now())}</span></span>`:`<span class="pill neutral">${esc(l.mode)}</span>`}</div>
   <h1>${esc(l.title)}</h1><p class="muted small">${l.interested+(mine?1:0)} neighbors interested</p>${action}</div></div>`;
 }
@@ -450,6 +468,7 @@ function ledger(what,amt){S.ledger.push({when:new Date().toLocaleTimeString([],{
 document.addEventListener("click",e=>{
   const nav=e.target.closest("[data-nav]"); if(nav){e.preventDefault();go(nav.dataset.nav);return}
   const open=e.target.closest("[data-open]"); if(open){detailId=open.dataset.open;go("detail");return}
+  if(e.target.closest('[data-act="dismissLost"]')){S.lastLost=null;save();render();return}
   const cp=e.target.closest("[data-catpick]"); if(cp){filter.cat=cp.dataset.catpick; render(); window.scrollTo(0,0); return}
   const st=e.target.closest("[data-stage]"); if(st){filter.stage=st.dataset.stage; if(filter.stage&&filter.cat&&!CAT[filter.cat].stages.includes(filter.stage))filter.cat=""; render(); return}
   const chip=e.target.closest("[data-chip]"); if(chip){chip.setAttribute("aria-pressed",chip.getAttribute("aria-pressed")==="true"?"false":"true");return}
@@ -464,7 +483,7 @@ document.addEventListener("click",e=>{
     const others=l.interested, myW=S.me.received?0.75:1.25, p=l.mode==="First come"?1:Math.max(.35,myW/(myW+others*0.5));
     const won=Math.random()<p||others===0;
     if(won){S.holds.push({id:"H"+Date.now(),listingId:id,state:"offered",acceptBy:Date.now()+6*3600e3,slot:null,messages:[{sys:true,t:`${l.owner} was notified that you won. Chat stays in the app; phone numbers and links are hidden.`}]});delete S.interests[id];go("pickups");toast("You won the draw");}
-    else{delete S.interests[id];l.gone=true;render();toast(`Not this time. ${NEIGHBORS[Math.floor(Math.random()*NEIGHBORS.length)]} was picked. You're first backup if they don't accept.`);}
+    else{delete S.interests[id];l.gone=true;S.lastLost={id:l.id,who:NEIGHBORS[Math.floor(Math.random()*NEIGHBORS.length)]};view="feed";render();window.scrollTo(0,0);}
     return}
   const h=S.holds.find(x=>x.id===id);
   if(act==="accept"){h.state="accepted";render();toast("Accepted. Pick a time.");return}

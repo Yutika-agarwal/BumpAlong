@@ -2,13 +2,27 @@ import Fastify, { type FastifyReply, type FastifyRequest } from "fastify";
 import { randomUUID } from "node:crypto";
 import {
   CATALOG, STAGES, STAGE_NOTES, TIER_POINTS, applyReceive, checkListing, draw, getCategory, giverEarns, quoteReceive,
-  tierOf, type ListingDraft, type Stage,
+  tierOf, shopLink, PLACEMENTS, type AffiliateConfig, type ListingDraft, type Placement, type Platform, type Stage,
 } from "@bumpalong/core";
 import { MemoryStore, type Listing } from "./store.js";
 
 const DEFAULT_CLAIM_WINDOW_HOURS = 12;
 
-export function buildApp(store = new MemoryStore(), now: () => Date = () => new Date()) {
+/** Amazon Associates settings from the environment. Native platforms stay off until Amazon approves the app. */
+export function affiliateFromEnv(env = process.env): AffiliateConfig {
+  const platforms = (env.AFFILIATE_PLATFORMS ?? "web").split(",").map((p) => p.trim()).filter(Boolean) as Platform[];
+  const placementTags: Partial<Record<Placement, string>> = {};
+  for (const p of PLACEMENTS) {
+    const t = env[`AMAZON_TAG_${p.toUpperCase()}`];
+    if (t) placementTags[p] = t;
+  }
+  return { tag: env.AMAZON_ASSOCIATE_TAG ?? "", placementTags, platforms };
+}
+
+const PLATFORMS: readonly Platform[] = ["web", "ios", "android"];
+const asPlatform = (p?: string): Platform => (PLATFORMS.includes(p as Platform) ? (p as Platform) : "web");
+
+export function buildApp(store = new MemoryStore(), now: () => Date = () => new Date(), affiliate: AffiliateConfig = affiliateFromEnv()) {
   const app = Fastify({ logger: false });
 
   // TODO(auth): replace with verified sessions (Apple, Google, email + phone). The header stands in for a signed-in user.
@@ -22,7 +36,13 @@ export function buildApp(store = new MemoryStore(), now: () => Date = () => new 
     return id;
   }
 
-  const view = (l: Listing) => ({ ...l, points: TIER_POINTS[l.tier] });
+  const matchInput = (l: Listing) => ({ title: l.title, model: l.model, category: l.category, subcategory: l.subcategory });
+  /** Links shown on a listing page: new parts for used pumps, or the new version of must-be-new items. */
+  const listingShop = (l: Listing, platform: Platform) =>
+    (["replacement_parts", "buy_new"] as const)
+      .map((placement) => shopLink(affiliate, { placement, platform, listing: matchInput(l) }))
+      .filter((x) => x !== undefined);
+  const view = (l: Listing, platform: Platform = "web") => ({ ...l, points: TIER_POINTS[l.tier], shop: listingShop(l, platform) });
 
   app.get("/health", async () => ({ ok: true }));
 
@@ -50,6 +70,7 @@ export function buildApp(store = new MemoryStore(), now: () => Date = () => new 
       category: cat.name,
       subcategory: req.body.subcategory,
       condition: req.body.condition,
+      model: (req.body.model ?? req.body.carSeat?.model ?? req.body.sleep?.model ?? "").trim(),
       tier: tierOf(cat.name, req.body.subcategory),
       stages: cat.stages,
       badges: result.badges,
@@ -61,8 +82,9 @@ export function buildApp(store = new MemoryStore(), now: () => Date = () => new 
     return reply.code(201).send({ listing: view(listing), warnings: result.warnings, needsRecallCheck: result.needsRecallCheck });
   });
 
-  app.get<{ Querystring: { stage?: string; category?: string; q?: string } }>("/listings", async (req) => {
+  app.get<{ Querystring: { stage?: string; category?: string; q?: string; platform?: string } }>("/listings", async (req) => {
     const { stage, category, q } = req.query;
+    const platform = asPlatform(req.query.platform);
     const needle = q?.toLowerCase().trim();
     const items = [...store.listings.values()].filter(
       (l) =>
@@ -72,7 +94,7 @@ export function buildApp(store = new MemoryStore(), now: () => Date = () => new 
         (!needle || `${l.title} ${l.category} ${l.subcategory} ${l.description}`.toLowerCase().includes(needle)),
     );
     items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-    return { listings: items.map(view) };
+    return { listings: items.map((l) => view(l, platform)) };
   });
 
   app.post<{ Params: { id: string }; Body: { chips?: string[] } }>("/listings/:id/interest", async (req, reply) => {
@@ -131,6 +153,23 @@ export function buildApp(store = new MemoryStore(), now: () => Date = () => new 
     h.status = "completed";
     l.status = "handed_off";
     return { hold: h, method: applied.method };
+  });
+
+  // A shopping suggestion for one placement, e.g. after someone loses the draw.
+  app.get<{ Params: { id: string }; Querystring: { placement?: string; platform?: string } }>("/listings/:id/shop", async (req, reply) => {
+    const l = store.listings.get(req.params.id);
+    if (!l) return reply.code(404).send({ error: "not_found" });
+    const placement = req.query.placement as Placement;
+    if (!PLACEMENTS.includes(placement)) return reply.code(400).send({ error: "unknown_placement" });
+    return { link: shopLink(affiliate, { placement, platform: asPlatform(req.query.platform), listing: matchInput(l) }) ?? null };
+  });
+
+  // Links go straight to Amazon (redirects are against Associates policy), so the app reports clicks separately.
+  app.post<{ Body: { listingId: string; placement: string; platform?: string } }>("/events/shop-click", async (req, reply) => {
+    const uid = req.headers["x-user-id"];
+    if (!req.body?.listingId || !PLACEMENTS.includes(req.body.placement as Placement)) return reply.code(400).send({ error: "bad_event" });
+    store.shopClicks.push({ userId: typeof uid === "string" ? uid : undefined, listingId: req.body.listingId, placement: req.body.placement, platform: asPlatform(req.body.platform), at: now() });
+    return reply.code(204).send();
   });
 
   app.get("/me/wallet", async (req, reply) => {

@@ -21,6 +21,7 @@ export interface Listing {
   category: string;
   subcategory: string;
   condition: string;
+  model: string;
   tier: Tier;
   stages: Stage[];
   badges: string[];
@@ -57,7 +58,16 @@ export interface LedgerRow {
   createdAt: Date;
 }
 
+export interface ShopClick {
+  userId?: string;
+  listingId: string;
+  placement: string;
+  platform: string;
+  at: Date;
+}
+
 export class MemoryStore {
+  shopClicks: ShopClick[] = [];
   users = new Map<string, User>();
   listings = new Map<string, Listing>();
   interests: Interest[] = [];

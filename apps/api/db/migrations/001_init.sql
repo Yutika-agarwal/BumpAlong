@@ -25,6 +25,7 @@ CREATE TABLE listings (
   description   text NOT NULL DEFAULT '',
   category      text NOT NULL,
   subcategory   text NOT NULL,
+  model         text NOT NULL DEFAULT '',  -- brand and model, for recalls and product matching
   condition     text NOT NULL,
   tier          item_tier NOT NULL,
   stages        text[] NOT NULL,
@@ -91,4 +92,14 @@ CREATE TABLE reports (
   status       text NOT NULL DEFAULT 'open',
   created_at   timestamptz NOT NULL DEFAULT now(),
   CHECK (listing_id IS NOT NULL OR user_id IS NOT NULL)
+);
+
+-- Clicks on Amazon links. Links go straight to Amazon, so the app reports clicks here.
+CREATE TABLE shop_clicks (
+  id          bigserial PRIMARY KEY,
+  user_id     uuid REFERENCES users(id),
+  listing_id  uuid REFERENCES listings(id),
+  placement   text NOT NULL,
+  platform    text NOT NULL,
+  created_at  timestamptz NOT NULL DEFAULT now()
 );

@@ -9,6 +9,7 @@ Give and get pregnancy, postpartum and baby items free from neighbors. Bumpalong
 | `packages/core` | Shared rules used by the app and the API: the catalog (17 categories across 5 life stages), points tiers, monthly allowance and cap, listing safety checks, and the claim lottery. |
 | `apps/api` | Fastify API for listings, interest, the draw, handoff confirmation and the points ledger. Runs on an in-memory store today. |
 | `apps/api/db/migrations` | Postgres and PostGIS schema the API moves to next. |
+| `docs/affiliate.md` | How Amazon affiliate links work, where they appear, and the Associates rules they follow. |
 | `docs/prototype.html` | The clickable prototype the product was designed with. Open it in a browser. |
 
 ## Run it
@@ -37,6 +38,7 @@ Until sign-in lands, requests that need a user pass an `x-user-id` header.
 - Receiving is capped at 8 items a month; Large items count as 2.
 - Popular items go to a lottery when the claim window closes. The draw is deterministic per listing, so retries can't change the winner.
 - Points only move when the handoff is confirmed, through an append-only ledger with idempotency keys.
+- Amazon affiliate links appear only where buying new helps: new parts for used pumps, must-be-new items, and after losing a draw. See `docs/affiliate.md`.
 - Safety checks block banned items (crib bumpers, inclined sleepers, breast milk and more), expired or crashed car seats, used open-system pumps and personal pump parts, opened formula, modified sleep products, pre-2011 cribs, and used items that must be new.
 
 ## Next
