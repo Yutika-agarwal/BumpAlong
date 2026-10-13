@@ -1,0 +1,520 @@
+<title>Bumpalong</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: app shell. Sidebar nav on desktop, bottom tab bar on phones; one main column of cards and panels. */
+:root{
+  --bg:#F3F6F4; --surface:#FFFFFF; --sunk:#E7EEEA; --line:#D5DFDA;
+  --ink:#1D2A27; --muted:#5B6B66;
+  --brand:#2E5E52; --brand-ink:#FFFFFF; --brand-soft:#DCEAE4;
+  --gold:#C98A12; --gold-soft:#FBEFD5;
+  --ok:#2F7A4A; --ok-soft:#DFF1E5; --warn:#A45F00; --warn-soft:#FDEBD0; --bad:#B23A35; --bad-soft:#F8E0DE;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121816; --surface:#1A2320; --sunk:#222D29; --line:#2F3C37;
+  --ink:#E6EEEA; --muted:#9DB0A9;
+  --brand:#7CC0AC; --brand-ink:#0F1A17; --brand-soft:#23382F;
+  --gold:#E8B54A; --gold-soft:#3A2F17;
+  --ok:#7CCB97; --ok-soft:#1E3326; --warn:#F0B35C; --warn-soft:#3A2A14; --bad:#F08A84; --bad-soft:#3A1E1C;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121816; --surface:#1A2320; --sunk:#222D29; --line:#2F3C37;
+  --ink:#E6EEEA; --muted:#9DB0A9;
+  --brand:#7CC0AC; --brand-ink:#0F1A17; --brand-soft:#23382F;
+  --gold:#E8B54A; --gold-soft:#3A2F17;
+  --ok:#7CCB97; --ok-soft:#1E3326; --warn:#F0B35C; --warn-soft:#3A2A14; --bad:#F08A84; --bad-soft:#3A1E1C;
+  color-scheme:dark}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+*{box-sizing:border-box}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:1.7rem} h2{font-size:1.25rem} h3{font-size:1.05rem}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.app{display:grid;grid-template-columns:220px 1fr;min-height:100%}
+.side{background:var(--surface);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh}
+.logo{font-family:var(--display);font-weight:700;font-size:1.4rem;color:var(--brand);padding-inline:8px}
+.logo small{display:block;font-family:var(--body);font-weight:500;font-size:.72rem;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;background:none;border:0;border-radius:10px;padding:9px 10px;text-align:left;color:var(--muted);font-weight:500}
+.nav button svg{width:20px;height:20px;flex:none}
+.nav button[aria-current="page"]{background:var(--brand-soft);color:var(--ink)}
+.nav .badge{margin-left:auto}
+.wallet-mini{margin-top:auto;background:var(--gold-soft);border-radius:var(--r);padding:12px}
+.wallet-mini b{font-family:var(--display);font-size:1.4rem;color:var(--ink)}
+.muted{color:var(--muted)}
+.small{font-size:.84rem}
+main{padding-block:22px 90px;padding-inline:clamp(16px,3vw,36px);min-width:0;max-width:1100px}
+.demo-bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--sunk);border-radius:10px;padding:8px 12px;margin-bottom:18px;font-size:.84rem;color:var(--muted)}
+.demo-bar button{margin-left:auto}
+.head{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 16px;font-weight:600}
+.btn.primary{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.btn.ghost{background:none}
+.btn.small{padding:5px 12px;font-size:.84rem}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.toolbar input,.toolbar select{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;min-width:0}
+.toolbar input{flex:1 1 220px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;text-align:left;padding:0}
+.card:hover{border-color:var(--brand)}
+.thumb{aspect-ratio:4/3;max-width:100%;display:grid;place-items:center;position:relative}
+.thumb svg{width:38%;height:auto;opacity:.85}
+.thumb .tier{position:absolute;top:10px;left:10px}
+.card .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:6px;flex:1}
+.meta{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:.82rem;color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:2px 9px;font-size:.75rem;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+.pill.tier{background:var(--gold-soft);color:var(--ink)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.neutral{background:var(--sunk);color:var(--muted)}
+.badge{background:var(--brand);color:var(--brand-ink);border-radius:999px;font-size:.72rem;font-weight:700;padding:1px 7px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.two{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+.stack{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:.85rem}
+.chip[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand)}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-weight:600;font-size:.88rem}
+.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:9px 12px}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.note{border-radius:10px;padding:10px 12px;font-size:.88rem}
+.note.bad{background:var(--bad-soft);color:var(--bad)}
+.note.ok{background:var(--ok-soft);color:var(--ok)}
+.note.warn{background:var(--warn-soft);color:var(--warn)}
+.note.info{background:var(--sunk);color:var(--muted)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.9rem}
+.kv dt{color:var(--muted)} .kv dd{margin:0}
+.timer{font-variant-numeric:tabular-nums;font-weight:600}
+.chat{display:flex;flex-direction:column;gap:6px;max-height:240px;overflow:auto;background:var(--bg);border-radius:10px;padding:10px}
+.msg{max-width:80%;padding:7px 11px;border-radius:12px;font-size:.9rem;background:var(--sunk)}
+.msg.me{align-self:flex-end;background:var(--brand-soft)}
+.msg .sys{color:var(--muted);font-size:.78rem}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.stat b{display:block;font-family:var(--display);font-size:1.6rem;font-variant-numeric:tabular-nums}
+.meter{height:6px;background:var(--sunk);border-radius:6px;overflow:hidden;margin-top:6px}
+.meter i{display:block;height:100%;background:var(--brand)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:500;z-index:30;max-width:calc(100% - 32px)}
+.back{background:none;border:0;color:var(--muted);padding:0;margin-bottom:12px;font-weight:600}
+.empty{padding:28px;text-align:center;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:var(--r)}
+.slots{display:flex;flex-wrap:wrap;gap:6px}
+.stages{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.stage{border:1px solid var(--line);background:var(--surface);border-radius:var(--r);padding:10px 12px;text-align:left;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stage b{font-family:var(--display);font-size:1rem}
+.stage span{font-size:.76rem;color:var(--muted);line-height:1.3}
+.stage[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand)}
+.catalog{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:10px}
+.catbox{text-align:left;font:inherit;color:inherit;cursor:pointer;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.catbox header{display:flex;gap:10px;align-items:center}
+.catbox .ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;flex:none;color:#2A3A35}
+.catbox .ico svg{width:22px;height:22px}
+.catbox h3{font-size:.98rem}
+.catbox .subs{display:flex;flex-wrap:wrap;gap:4px}
+.catbox .subs span{font-size:.76rem;background:var(--sunk);color:var(--muted);border-radius:999px;padding:2px 8px}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;inset:auto 0 0 0;height:auto;flex-direction:row;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));border-right:0;border-top:1px solid var(--line);z-index:20}
+  .logo,.wallet-mini{display:none}
+  .nav{flex-direction:row;width:100%;justify-content:space-around}
+  .nav button{flex-direction:column;gap:2px;font-size:.68rem;padding:6px 4px;position:relative}
+  .nav .badge{position:absolute;top:0;right:4px;margin:0}
+  .two{grid-template-columns:1fr}
+  .stages{grid-template-columns:repeat(3,minmax(0,1fr))}
+  h1{font-size:1.4rem}
+}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}}
+</style>
+
+<div class="app">
+  <aside class="side">
+    <div class="logo">Bumpalong<small>Maple Grove pilot</small></div>
+    <nav class="nav" id="nav" aria-label="Main"></nav>
+    <div class="wallet-mini" id="walletMini"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(function(){
+const ICONS={
+  feed:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>',
+  give:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
+  requests:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.5-4.5"/></svg>',
+  pickups:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9h16l-1.5 10h-13z"/><path d="M8 9a4 4 0 0 1 8 0"/></svg>',
+  wallet:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M16 12.5h2"/><path d="M3 9h18"/></svg>'
+};
+// Full catalog: every category, the life stages it serves, its default points tier and its subcategories.
+const ART={
+  maternity:'<path d="M9 3c0 3-2 4-2 8s3 9 7 9 4-4 4-6-2-3-4-3c0-3 1-5-1-8"/>',
+  comfort:'<path d="M4 15c0-4 3-7 8-7s8 3 8 7-3 4-8 4-8 0-8-4z"/><path d="M8 11c1-1 2-1.5 4-1.5"/>',
+  heart:'<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
+  bottle:'<path d="M9 3h6M10 3v3l-2 3v11h8V9l-2-3V3"/><path d="M8 13h8"/>',
+  pump:'<path d="M6 8h7v11H6zM13 11h3a3 3 0 0 0 3-3V5"/><circle cx="9.5" cy="13.5" r="1.5"/>',
+  spoon:'<path d="M8 3c-2 0-3 2-3 4s1.5 3 3 3 3-1 3-3-1-4-3-4zM8 10v11M16 3v18M14 3v5a2 2 0 0 0 4 0V3"/>',
+  stroller:'<path d="M6 16a2 2 0 1 0 4 0 2 2 0 1 0-4 0M15 16a2 2 0 1 0 4 0 2 2 0 1 0-4 0M5 6h3l2 8h8l2-6H9"/>',
+  carseat:'<path d="M7 4h6l1 9h5v6H7z"/><path d="M9 9h4"/>',
+  crib:'<path d="M3 18h18M5 18V9h14v9M5 13h14M9 9v9M13 9v9M17 9v9"/>',
+  diaper:'<path d="M4 7h16v3a8 8 0 0 1-16 0z"/><path d="M8 7v2M16 7v2"/>',
+  bath:'<path d="M4 12h16v3a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5zM6 12V6a2 2 0 0 1 4 0"/>',
+  play:'<path d="M3 20h18M6 20 12 8l6 12M9 14h6"/><circle cx="12" cy="5" r="1.5"/>',
+  shirt:'<path d="M8 4 4 7l2 3 2-1v11h8V9l2 1 2-3-4-3-2 2h-4z"/>',
+  toy:'<circle cx="12" cy="12" r="7"/><path d="M12 5v14M5 12h14"/>',
+  house:'<path d="M5 20V8l7-4 7 4v12M9 20v-6h6v6"/>',
+  shield:'<path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6z"/><path d="m9 12 2 2 4-4"/>',
+  potty:'<path d="M6 10h12l-1.5 4h-9zM8 14v6h8v-6M7 10V6h4v4"/>'
+};
+const STAGES=["Pregnancy","Postpartum","Newborn","Baby","Toddler"];
+const STAGE_NOTE={Pregnancy:"Maternity wear, comfort and birth prep",Postpartum:"Recovery, nursing and pumping",Newborn:"0 to 3 months",Baby:"3 to 12 months",Toddler:"1 to 3 years"};
+const CATALOG=[
+  {cat:"Maternity clothing",art:"maternity",hue:"#EED9CF",tier:"Small",stages:["Pregnancy","Postpartum"],subs:["Jeans and pants","Tops and dresses","Maternity coats","Belly bands","Maternity swimwear","Labor gowns and robes"]},
+  {cat:"Pregnancy comfort and birth prep",art:"comfort",hue:"#F1E1D2",tier:"Small",stages:["Pregnancy"],subs:["Pregnancy pillows","Support belts","Compression socks","Birth and peanut balls","Pregnancy and birth books","Hospital bag items (new)"]},
+  {cat:"Postpartum recovery",art:"heart",hue:"#F2D6D8",tier:"Small",stages:["Postpartum"],subs:["Recovery kits (sealed)","Peri bottles (new)","Postpartum underwear (new)","Sitz baths (new)","Belly binders","Recovery and nursing robes"]},
+  {cat:"Nursing and pumping",art:"pump",hue:"#DCE4F0",tier:"Small",stages:["Postpartum","Newborn","Baby"],subs:["Breast pumps","Pump parts (new, sealed)","Nursing bras and tanks","Nursing pillows","Nursing covers","Milk storage bags (sealed)","Nipple cream (unopened)"]},
+  {cat:"Bottles and formula",art:"bottle",hue:"#D9E3EE",tier:"Small",stages:["Newborn","Baby"],subs:["Bottles (with new nipples)","Bottle warmers","Sterilizers and dryers","Formula (sealed, in date)","Formula pitchers and dispensers"]},
+  {cat:"Solids and mealtime",art:"spoon",hue:"#E9E4CC",tier:"Small",stages:["Baby","Toddler"],subs:["High chairs","Booster and hook-on seats","Bibs","Plates, bowls and cups","Baby food makers"]},
+  {cat:"Strollers and carriers",art:"stroller",hue:"#CFE3DC",tier:"Large",stages:["Newborn","Baby","Toddler"],subs:["Full-size strollers","Travel systems","Compact and umbrella strollers","Jogging strollers","Double strollers","Soft carriers and wraps","Stroller accessories"]},
+  {cat:"Car seats",art:"carseat",hue:"#E3DCCF",tier:"Medium",stages:["Newborn","Baby","Toddler"],subs:["Infant car seats","Convertible car seats","All-in-one car seats","Booster seats","Car seat bases"]},
+  {cat:"Sleep",art:"crib",hue:"#E2DDF0",tier:"Large",stages:["Newborn","Baby","Toddler"],subs:["Cribs","Bassinets and bedside sleepers","Play yards","Crib mattresses","Sleep sacks and swaddles","Crib sheets","Sound machines and night lights"]},
+  {cat:"Diapering",art:"diaper",hue:"#E0EBDD",tier:"Small",stages:["Newborn","Baby","Toddler"],subs:["Diapers (unopened)","Cloth diapers and covers","Wipes (unopened)","Changing pads and covers","Diaper bags","Diaper pails"]},
+  {cat:"Bath and health",art:"bath",hue:"#D3E8EC",tier:"Small",stages:["Newborn","Baby","Toddler"],subs:["Baby tubs","Hooded towels and washcloths","Thermometers","Nail clippers and grooming","Nasal aspirators (new)","Humidifiers"]},
+  {cat:"Baby gear and play",art:"play",hue:"#DCE9E1",tier:"Medium",stages:["Newborn","Baby"],subs:["Bouncers and rockers","Swings","Play mats and activity gyms","Activity centers","Baby monitors"]},
+  {cat:"Clothing (preemie to 5T)",art:"shirt",hue:"#F0D9DE",tier:"Small",stages:["Newborn","Baby","Toddler"],subs:["Preemie and newborn","0 to 3 months","3 to 6 months","6 to 12 months","12 to 24 months","2T to 5T","Shoes and socks","Outerwear and snowsuits"]},
+  {cat:"Toys and books",art:"toy",hue:"#F3E6C8",tier:"Small",stages:["Newborn","Baby","Toddler"],subs:["Rattles and teethers","Developmental toys","Board books","Puzzles and blocks","Ride-ons and balance bikes"]},
+  {cat:"Nursery furniture",art:"house",hue:"#D9E6D3",tier:"Large",stages:["Pregnancy","Newborn","Baby"],subs:["Gliders and rockers","Dressers and changing tables","Bookshelves and storage","Nursery decor"]},
+  {cat:"Safety and babyproofing",art:"shield",hue:"#E6E1D6",tier:"Small",stages:["Baby","Toddler"],subs:["Baby gates","Cabinet and outlet locks (unopened)","Corner guards","Furniture anchors"]},
+  {cat:"Toddler transitions",art:"potty",hue:"#EAE0EE",tier:"Small",stages:["Toddler"],subs:["Potty chairs and seats","Toddler beds","Step stools","Training underwear (new)"]}
+];
+const SUB_TIER={"Pregnancy pillows":"Medium","Breast pumps":"Medium","Nursing pillows":"Medium","Bottle warmers":"Medium","Sterilizers and dryers":"Medium","High chairs":"Medium","Baby food makers":"Medium","Soft carriers and wraps":"Medium","Stroller accessories":"Small","Crib mattresses":"Medium","Sleep sacks and swaddles":"Small","Crib sheets":"Small","Sound machines and night lights":"Small","Baby tubs":"Small","Humidifiers":"Medium","Ride-ons and balance bikes":"Medium","Bookshelves and storage":"Medium","Nursery decor":"Small","Baby gates":"Medium","Toddler beds":"Large","Diaper pails":"Medium"};
+const CAT={}; CATALOG.forEach(c=>CAT[c.cat]=c);
+const CATEGORIES=CATALOG.map(c=>c.cat);
+const TIER_PTS={Small:50,Medium:150,Large:300};
+const MUST_BE_NEW=/\((new|sealed|unopened|new, sealed|sealed, in date|with new nipples)\)/;
+const BANNED=[["breast milk","Breast milk sharing isn't allowed. Accredited milk banks can help: see the safety page."],["breastmilk","Breast milk sharing isn't allowed. Accredited milk banks can help: see the safety page."],["crib bumper","Crib bumpers are banned for sale in the US because of suffocation risk."],["inclined sleeper","Inclined sleepers are banned under the Safe Sleep for Babies Act."],["drop-side","Drop-side cribs no longer meet the federal crib standard."],["drop side","Drop-side cribs no longer meet the federal crib standard."],["sleep positioner","Sleep positioners are a suffocation risk and can't be listed."],["baby walker","Baby walkers with wheels can't be listed because of fall risk."],["pacifier","Used pacifiers can't be shared for hygiene reasons."],["medication","Medications and supplements can't be listed."],["opened formula","Only unopened, sealed formula can be listed."],["weighted sleep","Weighted sleep sacks and swaddles go against safe sleep guidance, so they can't be listed."],["weighted swaddle","Weighted sleep sacks and swaddles go against safe sleep guidance, so they can't be listed."],["nipple shield","Used nipple shields can't be shared for hygiene reasons."]];
+const CHIPS=["Due next month","Baby is 0 to 3 months","First baby","Replacing a broken one","Can pick up today"];
+const NEIGHBORS=["Priya S.","Dana K.","Marisol R.","Hannah L.","Jo W.","Aisha B.","Kelly M.","Tomás G."];
+
+function seed(){
+  const now=Date.now(),h=3600e3;
+  return {
+    me:{name:"You",balance:300,reliability:80,floorSmall:2,floorMedium:1,received:0,cap:8},
+    listings:[
+      {id:"L1",title:"UPPAbaby Vista stroller with bassinet",cat:"Strollers and carriers",sub:"Full-size strollers",cond:"Gently used",size:"Birth to 50 lb",dist:0.5,owner:"Priya S.",interested:7,mode:"Lottery",closes:now+5*h,pickup:"Porch pickup",safety:["Recall check passed (CPSC)"],desc:"Used for one child. Bassinet, rain cover and cup holder included. Small scuff on the handlebar."},
+      {id:"L2",title:"Bag of 0 to 3 month clothes (about 25 pieces)",cat:"Clothing (preemie to 5T)",sub:"0 to 3 months",cond:"Gently used",size:"0 to 3 months",dist:1,owner:"Dana K.",interested:4,mode:"Lottery",closes:now+2*h,pickup:"Porch pickup",safety:[],desc:"Onesies, sleepers and two hats. Washed and folded. Mostly neutral colors.",bundle:true},
+      {id:"L3",title:"Graco SnugRide infant car seat",cat:"Car seats",sub:"Infant car seats",cond:"Like new",size:"4 to 35 lb",dist:1.5,owner:"Marisol R.",interested:3,mode:"Lottery",closes:now+9*h,pickup:"Public meetup",safety:["Expires Mar 2030","Never in a crash (owner attests)","Recall check passed (CPSC)"],desc:"Base included. Label photo shows manufacture date Mar 2023."},
+      {id:"L4",title:"Spectra S1 breast pump (closed system)",cat:"Nursing and pumping",sub:"Breast pumps",cond:"Gently used",size:"",dist:2,owner:"Hannah L.",interested:5,mode:"Lottery",closes:now+11*h,pickup:"Hand-to-hand",safety:["Closed-system pump: use new personal parts","Flanges and tubing not included"],desc:"Motor unit and power cord only. Works perfectly. You will need a new parts kit."},
+      {id:"L5",title:"Boppy nursing pillow and two covers",cat:"Nursing and pumping",sub:"Nursing pillows",cond:"Like new",size:"",dist:0.5,owner:"Jo W.",interested:1,mode:"First come",closes:null,pickup:"Porch pickup",safety:[],desc:"Covers washed. Smoke-free and pet-free home."},
+      {id:"L6",title:"Maternity jeans, sizes M and L (3 pairs)",cat:"Maternity clothing",sub:"Jeans and pants",cond:"Gently used",size:"M, L",dist:3,owner:"Aisha B.",interested:2,mode:"Lottery",closes:now+20*h,pickup:"Porch pickup",safety:[],desc:"Full-panel style. One pair has a small fade on the knee.",bundle:true},
+      {id:"L7",title:"Wooden stacking toys and board books",cat:"Toys and books",sub:"Developmental toys",cond:"Well used",size:"6 to 24 months",dist:2.5,owner:"Kelly M.",interested:0,mode:"Lottery",closes:now+30*h,pickup:"Porch pickup",safety:[],desc:"Ring stacker, shape sorter and eight board books. Some teeth marks on the books.",bundle:true},
+      {id:"L8",title:"Postpartum recovery kit, unopened",cat:"Postpartum recovery",sub:"Recovery kits (sealed)",cond:"New with tags",size:"",dist:4,owner:"Tomás G.",interested:6,mode:"Lottery",closes:now+3*h,pickup:"Public meetup",safety:["New and sealed"],desc:"Peri bottle, pads and cooling liners. All sealed. We had extras from the hospital."},
+      {id:"L9",title:"Full-length pregnancy pillow (U-shape)",cat:"Pregnancy comfort and birth prep",sub:"Pregnancy pillows",cond:"Gently used",size:"",dist:1.2,owner:"Dana K.",interested:3,mode:"Lottery",closes:now+14*h,pickup:"Porch pickup",safety:[],desc:"Cover washed on hot. Saved my third trimester."},
+      {id:"L10",title:"Birth ball, 65 cm, with pump",cat:"Pregnancy comfort and birth prep",sub:"Birth and peanut balls",cond:"Like new",size:"65 cm",dist:2.2,owner:"Hannah L.",interested:1,mode:"First come",closes:null,pickup:"Porch pickup",safety:[],desc:"Anti-burst. Wiped down. Good for labor prep and later for bouncing a fussy baby."},
+      {id:"L11",title:"Nursing bras and tanks, size 36C (5 pieces)",cat:"Nursing and pumping",sub:"Nursing bras and tanks",cond:"Gently used",size:"36C",dist:0.8,owner:"Priya S.",interested:2,mode:"Lottery",closes:now+16*h,pickup:"Porch pickup",safety:[],desc:"Three bras and two tanks with clip-down cups. Washed.",bundle:true},
+      {id:"L12",title:"Sitz bath and peri bottle, both new in box",cat:"Postpartum recovery",sub:"Sitz baths (new)",cond:"New with tags",size:"",dist:3.4,owner:"Kelly M.",interested:4,mode:"Lottery",closes:now+6*h,pickup:"Public meetup",safety:["New and sealed"],desc:"Never opened. Bought two by mistake."},
+      {id:"L13",title:"4moms MamaRoo swing",cat:"Baby gear and play",sub:"Swings",cond:"Gently used",size:"Up to 25 lb",dist:1.8,owner:"Aisha B.",interested:8,mode:"Lottery",closes:now+7*h,pickup:"Hand-to-hand",safety:["Recall check passed (CPSC)"],desc:"Power cord and insert included. App still connects."},
+      {id:"L14",title:"Cloth diaper stash: 18 pocket diapers and inserts",cat:"Diapering",sub:"Cloth diapers and covers",cond:"Gently used",size:"One size",dist:2.9,owner:"Tomás G.",interested:2,mode:"Lottery",closes:now+22*h,pickup:"Porch pickup",safety:[],desc:"Stripped and sanitized. Elastic still good on all of them.",bundle:true},
+      {id:"L15",title:"Stokke Tripp Trapp high chair",cat:"Solids and mealtime",sub:"High chairs",cond:"Gently used",size:"6 months and up",dist:4.5,owner:"Jo W.",interested:6,mode:"Lottery",closes:now+10*h,pickup:"Porch pickup",safety:["Recall check passed (CPSC)"],desc:"Natural wood, baby set and tray included."},
+      {id:"L16",title:"Pressure-mounted baby gates (2)",cat:"Safety and babyproofing",sub:"Baby gates",cond:"Gently used",size:"29 to 38 in openings",dist:3.1,owner:"Marisol R.",interested:1,mode:"Lottery",closes:now+26*h,pickup:"Porch pickup",safety:[],desc:"Walk-through doors. For doorways, not the top of stairs."},
+      {id:"L17",title:"Potty chair and toilet seat insert",cat:"Toddler transitions",sub:"Potty chairs and seats",cond:"Gently used",size:"",dist:1.6,owner:"Kelly M.",interested:0,mode:"First come",closes:null,pickup:"Porch pickup",safety:[],desc:"Cleaned and disinfected. Our kid is fully trained."},
+      {id:"L18",title:"Winter snowsuit and boots, 12 to 18 months",cat:"Clothing (preemie to 5T)",sub:"Outerwear and snowsuits",cond:"Like new",size:"12 to 18 months",dist:2.4,owner:"Priya S.",interested:3,mode:"Lottery",closes:now+12*h,pickup:"Porch pickup",safety:[],desc:"Worn about five times."},
+      {id:"L19",title:"Halo bassinet with swivel",cat:"Sleep",sub:"Bassinets and bedside sleepers",cond:"Gently used",size:"Up to 20 lb",dist:3.7,owner:"Hannah L.",interested:9,mode:"Lottery",closes:now+4*h,pickup:"Hand-to-hand",safety:["Made 2023","Recall check passed (CPSC)","Not modified"],desc:"Original mattress pad and two fitted sheets."}
+    ],
+    interests:{}, // listingId -> chips
+    holds:[], // {id,listingId,state,acceptBy,slot,messages,address}
+    mine:[],
+    requests:[
+      {who:"Marisol R.",what:"Baby carrier (Ergobaby or similar)",size:"Newborn insert ideal",by:"Within 2 weeks",dist:1.5},
+      {who:"Jo W.",what:"Size 2 diapers, unopened",size:"Size 2",by:"This week",dist:0.5},
+      {who:"Aisha B.",what:"Bassinet or bedside sleeper",size:"",by:"Due next month",dist:3}
+    ],
+    myRequests:[],
+    saved:["Car seats within 3 miles"],
+    ledger:[{when:"Today",what:"Starting balance",amt:300}]
+  };
+}
+let S;
+try{S=JSON.parse(localStorage.getItem("tinytribe-demo-v2"))}catch(e){S=null}
+if(!S||!S.listings) S=seed();
+function save(){try{localStorage.setItem("tinytribe-demo-v2",JSON.stringify(S))}catch(e){}}
+
+let view="feed",detailId=null,filter={q:"",cat:"",dist:"5",stage:""};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2600)}
+function fmtLeft(ms){if(ms<=0)return"closing now";const m=Math.round(ms/60000),h=Math.floor(m/60);return h?`${h}h ${m%60}m`:`${m}m`}
+function tierOf(l){return l.tier||SUB_TIER[l.sub]||(CAT[l.cat]&&CAT[l.cat].tier)||"Small"}
+function thumb(l){return `<div class="thumb" style="background:${(CAT[l.cat]||{}).hue||"#ddd"};color:#2A3A35"><span class="pill tier">${tierOf(l)} · ${TIER_PTS[tierOf(l)]} pts</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${ART[(CAT[l.cat]||{}).art]||""}</svg></div>`}
+
+function renderNav(){
+  const activeHolds=S.holds.filter(h=>h.state!=="done").length;
+  const items=[["feed","Nearby"],["give","Give"],["requests","Requests"],["pickups","Pickups"],["wallet","Points"]];
+  $("#nav").innerHTML=items.map(([k,t])=>`<button data-nav="${k}" ${view===k?'aria-current="page"':""}>${ICONS[k]}<span>${t}</span>${k==="pickups"&&activeHolds?`<span class="badge">${activeHolds}</span>`:""}</button>`).join("");
+  $("#walletMini").innerHTML=`<div class="small muted">Your points</div><b>${S.me.balance}</b><div class="small muted">Reliability ${S.me.reliability} of 100</div>`;
+}
+function demoBar(){return `<div class="demo-bar"><span><b>Prototype</b> with sample neighbors and items. Nothing here is real, and timers are simulated.</span><button class="btn small ghost" data-act="reset">Reset demo</button></div>`}
+
+function renderFeed(){
+  const q=filter.q.toLowerCase().trim();
+  let warn="";
+  const ban=BANNED.find(([k])=>q&&q.includes(k));
+  if(ban) warn=`<div class="note warn">${esc(ban[1])}</div>`;
+  const items=S.listings.filter(l=>(!filter.cat||l.cat===filter.cat)&&(!filter.stage||(CAT[l.cat]&&CAT[l.cat].stages.includes(filter.stage)))&&l.dist<=+filter.dist&&(!q||(l.title+" "+l.cat+" "+(l.sub||"")+" "+(l.size||"")).toLowerCase().includes(q))&&!l.gone);
+  const cats=filter.stage?CATALOG.filter(c=>c.stages.includes(filter.stage)):CATALOG;
+  return `${demoBar()}<div class="head"><div><h1>Free near you</h1><p class="muted">Everything from pregnancy to toddler, within ${filter.dist} miles of Maple Grove. Tap an item to see details and say you're interested.</p></div></div>
+  <div class="stages" role="group" aria-label="Life stage"><button class="stage" aria-pressed="${!filter.stage}" data-stage=""><b>Everything</b><span>${S.listings.filter(l=>!l.gone).length} items</span></button>${STAGES.map(st=>`<button class="stage" aria-pressed="${filter.stage===st}" data-stage="${st}"><b>${st}</b><span>${STAGE_NOTE[st]}</span></button>`).join("")}</div>
+  <div class="toolbar"><input id="q" type="search" placeholder="Search pregnancy pillow, pump, 0 to 3 months, stroller…" value="${esc(filter.q)}" aria-label="Search">
+  <select id="cat" aria-label="Category"><option value="">All categories</option>${cats.map(c=>`<option ${filter.cat===c.cat?"selected":""}>${c.cat}</option>`).join("")}</select>
+  <select id="dist" aria-label="Distance">${[1,3,5,10].map(d=>`<option value="${d}" ${+filter.dist===d?"selected":""}>Within ${d} mi</option>`).join("")}</select>
+  <button class="btn small" data-act="saveSearch">Save this search</button></div>
+  ${warn}
+  ${items.length?`<div class="grid">${items.map(card).join("")}</div>`:`<div class="empty">Nothing matches yet. Try a wider distance, or <button class="btn small" data-nav="requests">post a request</button> so neighbors know what you need.</div>`}
+  <div class="panel" style="margin-top:22px"><h2>What you can share${filter.stage?" for "+filter.stage.toLowerCase():""}</h2><p class="muted small">Tap a category to filter the feed. Items marked new or sealed can only be shared unopened.</p>
+  <div class="catalog">${cats.map(c=>`<button class="catbox" data-catpick="${esc(c.cat)}"><header><span class="ico" style="background:${c.hue}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${ART[c.art]||""}</svg></span><h3>${esc(c.cat)}</h3></header><div class="subs">${c.subs.map(x=>`<span>${esc(x)}</span>`).join("")}</div></button>`).join("")}</div></div>`;
+}
+function card(l){
+  const mine=S.interests[l.id];
+  const status=l.mode==="First come"?`<span class="pill neutral">First come</span>`:(l.closes?`<span class="pill neutral">Draw in <span class="timer" data-closes="${l.closes}">${fmtLeft(l.closes-Date.now())}</span></span>`:"");
+  return `<button class="card" data-open="${l.id}">${thumb(l)}<div class="body"><h3>${esc(l.title)}</h3>
+  <div class="meta"><span>${esc(l.sub||l.cat)}</span><span>${l.dist} mi</span><span>${esc(l.cond)}</span>${l.size?`<span>${esc(l.size)}</span>`:""}</div>
+  <div class="row">${status}<span class="pill neutral">${l.interested+(mine?1:0)} interested</span>${mine?`<span class="pill ok">You're in</span>`:""}</div></div></button>`;
+}
+
+function renderDetail(){
+  const l=S.listings.find(x=>x.id===detailId); if(!l){view="feed";return renderFeed()}
+  const mine=S.interests[l.id];
+  const t=tierOf(l),cost=TIER_PTS[t];
+  const canFloor=(t==="Small"&&S.me.floorSmall>0)||(t==="Medium"&&S.me.floorMedium>0);
+  const afford=S.me.balance>=cost||canFloor;
+  const atCap=S.me.received>=S.me.cap;
+  const isOwn=l.owner==="You";
+  let action="";
+  if(isOwn) action=`<div class="note info">This is your listing. You'll be told when the draw picks someone.</div>`;
+  else if(S.holds.find(h=>h.listingId===l.id&&h.state!=="done")) action=`<div class="note ok">You won this one. Go to <button class="btn small" data-nav="pickups">Pickups</button> to accept and pick a time.</div>`;
+  else if(atCap) action=`<div class="note warn">You've reached this month's limit of ${S.me.cap} items. It resets on the 1st.</div>`;
+  else if(!afford) action=`<div class="note warn">You need ${cost} points for a ${t} item and you have ${S.me.balance}. Give something away to earn more.</div>`;
+  else if(mine) action=`<div class="note ok">You're in the draw${mine.length?` with: ${mine.map(esc).join(", ")}`:""}.</div>
+    <div class="row"><button class="btn primary" data-act="draw" data-id="${l.id}">${l.mode==="First come"?"Claim it now":"Run the draw now (demo)"}</button><button class="btn" data-act="withdraw" data-id="${l.id}">Withdraw</button></div>
+    <p class="small muted">${l.mode==="First come"?"First come: the first person to claim gets the hold.":"In the real app the draw runs when the window closes. People who received something recently get a lower chance."}</p>`;
+  else action=`<p class="small muted">Add context for the giver if you like. Only they see it, and it's never free text.</p>
+    <div class="chips" id="chipset">${CHIPS.map(c=>`<button class="chip" aria-pressed="false" data-chip="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+    <div class="row"><button class="btn primary" data-act="interest" data-id="${l.id}">I'm interested</button>
+    <span class="small muted">${afford&&S.me.balance<cost?"Uses your monthly free allowance":`Costs ${cost} points only if you receive it`}</span></div>`;
+  return `${demoBar()}<button class="back" data-nav="feed">← Back to nearby items</button>
+  <div class="two"><div class="stack"><div class="panel" style="padding:0;overflow:hidden">${thumb(l)}</div>
+    <div class="panel"><h2>About this item</h2><p>${esc(l.desc)}</p>
+    <dl class="kv"><dt>Category</dt><dd>${esc(l.cat)}${l.sub?" › "+esc(l.sub):""}${l.bundle?" (bundle)":""}</dd><dt>Good for</dt><dd>${(CAT[l.cat]||{stages:[]}).stages.join(", ")}</dd><dt>Condition</dt><dd>${esc(l.cond)}</dd>${l.size?`<dt>Size or age</dt><dd>${esc(l.size)}</dd>`:""}<dt>Pickup</dt><dd>${esc(l.pickup)}</dd><dt>Distance</dt><dd>${l.dist} mi (exact address shared after you pick a time)</dd><dt>Giver</dt><dd>${esc(l.owner)}</dd></dl>
+    ${l.safety.length?`<div class="row">${l.safety.map(s=>`<span class="pill ok">${esc(s)}</span>`).join("")}</div>`:""}</div></div>
+  <div class="panel"><div class="row"><span class="pill tier">${t} · ${cost} pts</span>${l.closes&&l.mode!=="First come"?`<span class="pill neutral">Draw in <span class="timer" data-closes="${l.closes}">${fmtLeft(l.closes-Date.now())}</span></span>`:`<span class="pill neutral">${esc(l.mode)}</span>`}</div>
+  <h1>${esc(l.title)}</h1><p class="muted small">${l.interested+(mine?1:0)} neighbors interested</p>${action}</div></div>`;
+}
+
+function renderGive(){
+  return `${demoBar()}<div class="head"><div><h1>Give an item</h1><p class="muted">You earn points when the handoff is confirmed. Safety checks run before your listing goes live.</p></div></div>
+  <form class="panel" id="giveForm" novalidate>
+  <div class="fields">
+   <div class="field"><label for="g-title">What are you giving?</label><input id="g-title" required placeholder="e.g. Baby Bjorn bouncer"></div>
+   <div class="field"><label for="g-cat">Category</label><select id="g-cat">${STAGES.map(st=>`<optgroup label="${st}">${CATALOG.filter(c=>c.stages[0]===st).map(c=>`<option>${c.cat}</option>`).join("")}</optgroup>`).join("")}</select></div>
+   <div class="field"><label for="g-sub">Type</label><select id="g-sub"></select></div>
+   <div class="field"><label for="g-cond">Condition</label><select id="g-cond"><option>New with tags</option><option>Like new</option><option selected>Gently used</option><option>Well used</option><option>For parts or crafts</option></select></div>
+   <div class="field"><label for="g-size">Size or age range</label><input id="g-size" placeholder="e.g. 0 to 3 months"></div>
+  </div>
+  <div id="g-safety" class="fields"></div>
+  <div class="fields">
+   <div class="field"><label for="g-pickup">Pickup</label><select id="g-pickup"><option>Porch pickup</option><option>Hand-to-hand</option><option>Public meetup</option></select></div>
+   <div class="field"><label for="g-mode">How should we pick?</label><select id="g-mode"><option>Lottery</option><option>First come</option></select></div>
+   <div class="field"><label for="g-window">Claim window</label><select id="g-window"><option value="2">2 hours</option><option value="12" selected>12 hours</option><option value="24">24 hours</option><option value="48">48 hours</option></select></div>
+  </div>
+  <div class="field"><label for="g-desc">Details</label><textarea id="g-desc" rows="3" placeholder="What's included, any wear or missing parts"></textarea></div>
+  <div class="field"><label for="g-photo">Photos</label><input id="g-photo" type="file" accept="image/*" multiple><span class="small muted">We remove location data from photos and blur any child's face we detect.</span></div>
+  <div id="g-msg"></div>
+  <div class="row"><button class="btn primary" type="submit">Check and publish</button><span class="small muted" id="g-tier"></span></div>
+  </form>
+  ${S.mine.length?`<div class="panel" style="margin-top:16px"><h2>Your listings</h2>${S.mine.map(id=>{const l=S.listings.find(x=>x.id===id);return l?`<div class="row"><b>${esc(l.title)}</b><span class="pill neutral">${l.gone?"Handed off":"Active"}</span><span class="small muted">${l.interested} interested</span></div>`:""}).join("")}</div>`:""}`;
+}
+function safetyFields(cat,sub){
+  if(cat==="Car seats") return `<div class="field"><label for="s-exp">Expiry date on the label</label><input id="s-exp" type="month"></div><div class="field"><label for="s-crash">Has it ever been in a crash?</label><select id="s-crash"><option value="">Choose one</option><option value="no">No, never</option><option value="yes">Yes</option><option value="unsure">Not sure</option></select></div><div class="field"><label for="s-model">Brand and model</label><input id="s-model" placeholder="For the recall check"></div>`;
+  if(cat==="Bottles and formula") return `<div class="field"><label for="s-formula">Formula or food?</label><select id="s-formula"><option value="na">No</option><option value="sealed">Yes, sealed and in date</option><option value="open">Yes, opened</option></select></div>`;
+  if(cat==="Nursing and pumping") return `<div class="field"><label for="s-pump">Is this a breast pump?</label><select id="s-pump"><option value="none">Not a pump</option><option value="closed">Yes, closed-system (multi-user)</option><option value="open">Yes, open-system (single-user)</option></select></div><div class="field"><label for="s-sealed">Personal parts (flanges, valves, tubing)</label><select id="s-sealed"><option value="na">Not included</option><option value="sealed">Included, new and sealed</option><option value="used">Included, used</option></select></div>`;
+  if(cat==="Sleep"||cat==="Nursery furniture") return `<div class="field"><label for="s-model">Brand and model</label><input id="s-model" placeholder="For the recall check"></div><div class="field"><label for="s-year">Year made</label><input id="s-year" type="number" min="1990" max="2026" placeholder="e.g. 2022"></div><div class="field"><label for="s-mod">Modified or homemade?</label><select id="s-mod"><option value="no">No</option><option value="yes">Yes</option></select></div>`;
+  return "";
+}
+function checkGive(){
+  const title=$("#g-title").value.trim(), cat=$("#g-cat").value, sub=$("#g-sub").value, text=(title+" "+$("#g-desc").value).toLowerCase();
+  const errs=[],warns=[],badges=[];
+  if(!title) errs.push("Add a short title so neighbors know what it is.");
+  const ban=BANNED.find(([k])=>text.includes(k)); if(ban) errs.push(ban[1]);
+  if(MUST_BE_NEW.test(sub)&&$("#g-cond").value!=="New with tags") errs.push(`${sub.replace(/\s*\(.*\)/,"")} must be new and sealed to share. Set the condition to "New with tags", or leave it out.`);
+  if(cat==="Car seats"){
+    const exp=$("#s-exp").value,crash=$("#s-crash").value;
+    if(!exp) errs.push("Add the expiry date from the car seat label.");
+    else{const d=new Date(exp+"-01"),now=new Date(2026,9,13);
+      if(d<now) errs.push("This car seat has expired, so it can't be listed.");
+      else{ if((d-now)/864e5<183) warns.push("This seat expires within 6 months. We'll show that on the listing."); badges.push("Expires "+d.toLocaleString("en-US",{month:"short",year:"numeric"}));}}
+    if(crash==="yes") errs.push("Car seats that have been in a crash can't be listed.");
+    else if(crash==="unsure") errs.push("If you're not sure about crash history, the seat can't be listed.");
+    else if(!crash) errs.push("Tell us whether the seat has been in a crash.");
+    else badges.push("Never in a crash (owner attests)");
+  }
+  if(cat==="Bottles and formula"&&$("#s-formula").value==="open") errs.push("Only unopened, sealed formula can be listed.");
+  if(cat==="Nursing and pumping"){
+    const p=$("#s-pump").value,s=$("#s-sealed").value;
+    if(p==="open"&&$("#g-cond").value!=="New with tags") errs.push("Single-user (open-system) pumps can only be given new and sealed.");
+    if(s==="used") errs.push("Used flanges, valves and tubing can't be shared. Remove them or include new sealed parts.");
+    if(p==="closed") badges.push("Closed-system pump: use new personal parts");
+  }
+  if(cat==="Sleep"||cat==="Nursery furniture"){
+    if($("#s-mod").value==="yes") errs.push("Homemade or modified sleep products can't be listed.");
+    if(!$("#s-model").value.trim()) warns.push("Add the brand and model so we can run the recall check.");
+  }
+  if(["Car seats","Strollers and carriers","Sleep","Nursery furniture","Baby gear and play"].includes(cat)&&!errs.length) badges.push("Recall check passed (CPSC)");
+  return {errs,warns,badges,title,cat,sub};
+}
+
+function renderRequests(){
+  return `${demoBar()}<div class="head"><div><h1>Requests</h1><p class="muted">Ask for what you need. Neighbors with a match get a nudge, and so do you when one is listed.</p></div></div>
+  <div class="two"><div class="stack"><div class="panel"><h2>Nearby requests</h2>
+  ${S.requests.map(r=>`<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:10px"><div><b>${esc(r.what)}</b><div class="small muted">${esc(r.who)} · ${r.dist} mi · ${esc(r.by)}${r.size?" · "+esc(r.size):""}</div></div><button class="btn small" data-nav="give">I have one</button></div>`).join("")}</div>
+  ${S.myRequests.length?`<div class="panel"><h2>Your requests</h2>${S.myRequests.map(r=>`<div><b>${esc(r.what)}</b> <span class="small muted">${esc(r.by)} · open for 30 days</span></div>`).join("")}</div>`:""}</div>
+  <div class="stack"><form class="panel" id="reqForm"><h2>Ask for something</h2>
+  <div class="field"><label for="r-what">What do you need?</label><input id="r-what" placeholder="e.g. Baby carrier" required></div>
+  <div class="field"><label for="r-size">Size or age</label><input id="r-size" placeholder="Optional"></div>
+  <div class="field"><label for="r-by">When</label><select id="r-by"><option>This week</option><option>Within 2 weeks</option><option>Due next month</option><option>No rush</option></select></div>
+  <div id="r-msg"></div><button class="btn primary" type="submit">Post request</button></form>
+  <div class="panel"><h2>Saved searches</h2>${S.saved.length?S.saved.map(s=>`<div class="row"><span>${esc(s)}</span><span class="pill neutral">Alerts on</span></div>`).join(""):`<p class="muted small">Save a search on the Nearby page to get alerts.</p>`}</div></div></div>`;
+}
+
+function renderPickups(){
+  const hs=S.holds.slice().reverse();
+  if(!hs.length) return `${demoBar()}<div class="head"><h1>Pickups</h1></div><div class="empty">No pickups yet. When you win a draw, the item shows up here with a timer to accept it.</div>`;
+  return `${demoBar()}<div class="head"><div><h1>Pickups</h1><p class="muted">Accept in time, pick a slot, and confirm when you have it. No-shows lower your reliability score.</p></div></div><div class="stack">${hs.map(holdPanel).join("")}</div>`;
+}
+function holdPanel(h){
+  const l=S.listings.find(x=>x.id===h.listingId); const t=tierOf(l);
+  let body="";
+  if(h.state==="offered") body=`<div class="note info">You won the draw. Accept within <span class="timer" data-closes="${h.acceptBy}">${fmtLeft(h.acceptBy-Date.now())}</span> or it goes to the next person.</div>
+    <div class="row"><button class="btn primary" data-act="accept" data-id="${h.id}">Accept</button><button class="btn" data-act="decline" data-id="${h.id}">Pass to next person</button></div>`;
+  if(h.state==="accepted") body=`<div class="field"><b>Pick a pickup time</b><div class="slots">${["Today 5:00 to 6:00 pm","Today 7:00 to 8:00 pm","Tomorrow 9:00 to 10:00 am","Tomorrow 6:00 to 7:00 pm"].map(s=>`<button class="chip" aria-pressed="${h.slot===s}" data-act="slot" data-id="${h.id}" data-slot="${esc(s)}">${esc(s)}</button>`).join("")}</div></div>
+    ${h.slot?`<div class="note ok"><b>${esc(l.pickup)}:</b> ${l.pickup==="Public meetup"?"Maple Grove Library, north entrance":"1428 Birch Lane (porch, left of the door)"} · ${esc(h.slot)}<br><span class="small">The address hides again 24 hours after pickup.</span></div>`:`<div class="note info">The address appears once you pick a time.</div>`}
+    <div class="chat" id="chat-${h.id}">${h.messages.map(m=>`<div class="msg ${m.me?"me":""}">${m.sys?`<span class="sys">${esc(m.t)}</span>`:esc(m.t)}</div>`).join("")}</div>
+    <form class="row" data-chat="${h.id}"><input id="msg-${h.id}" style="flex:1 1 200px;border:1px solid var(--line);border-radius:999px;padding:8px 14px;background:var(--bg)" placeholder="Message ${esc(l.owner)}" aria-label="Message"><button class="btn small" type="submit">Send</button></form>
+    <div class="row"><button class="btn primary" data-act="gotit" data-id="${h.id}" ${h.slot?"":"disabled"}>Got it</button><button class="btn" data-act="declineAtPickup" data-id="${h.id}" ${h.slot?"":"disabled"}>Doesn't match the listing</button><button class="btn ghost" data-act="cancel" data-id="${h.id}">Cancel</button></div>`;
+  if(h.state==="done") body=`<div class="note ok">${esc(h.result)}</div>`;
+  if(h.state==="released") body=`<div class="note warn">${esc(h.result)}</div>`;
+  return `<div class="panel"><div class="row" style="justify-content:space-between"><div><h2>${esc(l.title)}</h2><div class="small muted">From ${esc(l.owner)} · ${l.dist} mi</div></div><span class="pill tier">${t} · ${TIER_PTS[t]} pts</span></div>${body}</div>`;
+}
+
+function renderWallet(){
+  const m=S.me;
+  return `${demoBar()}<div class="head"><div><h1>Your points</h1><p class="muted">Points move only when a handoff is confirmed. They never expire and can't be bought or sold.</p></div></div>
+  <div class="stats">
+   <div class="stat"><span class="small muted">Balance</span><b>${m.balance}</b><span class="small muted">points</span></div>
+   <div class="stat"><span class="small muted">Free allowance this month</span><b>${m.floorSmall} + ${m.floorMedium}</b><span class="small muted">small + medium items, even at 0 points</span></div>
+   <div class="stat"><span class="small muted">Received this month</span><b>${m.received} of ${m.cap}</b><div class="meter"><i style="width:${Math.min(100,m.received/m.cap*100)}%"></i></div></div>
+   <div class="stat"><span class="small muted">Reliability</span><b>${m.reliability}</b><div class="meter"><i style="width:${m.reliability}%;background:${m.reliability>=70?"var(--ok)":m.reliability>=40?"var(--warn)":"var(--bad)"}"></i></div><span class="small muted">${m.reliability>=70?"Shows a Reliable badge":"Below 70, no badge"}</span></div>
+  </div>
+  <div class="two" style="margin-top:16px"><div class="panel"><h2>History</h2><div class="tablewrap"><table><thead><tr><th>When</th><th>What</th><th style="text-align:right">Points</th></tr></thead><tbody>${S.ledger.slice().reverse().map(e=>`<tr><td>${esc(e.when)}</td><td>${esc(e.what)}</td><td class="num">${e.amt>0?"+":""}${e.amt}</td></tr>`).join("")}</tbody></table></div></div>
+  <div class="panel"><h2>How points work</h2><div class="tablewrap"><table><thead><tr><th>Size</th><th>Examples</th><th style="text-align:right">Points</th></tr></thead><tbody>
+  <tr><td>Small</td><td>Clothes bundle, toys, books</td><td class="num">50</td></tr><tr><td>Medium</td><td>Bouncer, carrier, car seat</td><td class="num">150</td></tr><tr><td>Large</td><td>Stroller, crib, glider</td><td class="num">300</td></tr></tbody></table></div>
+  <p class="small muted">Givers earn the item's points; receivers spend them. Your first giveaway earns a 100-point bonus. You can receive up to 8 items a month.</p></div></div>`;
+}
+
+function render(){
+  renderNav();
+  const r={feed:renderFeed,detail:renderDetail,give:renderGive,requests:renderRequests,pickups:renderPickups,wallet:renderWallet}[view];
+  $("#main").innerHTML=r();
+  if(view==="give"){const c=$("#g-cat"),sb=$("#g-sub");
+    const updTier=()=>{const t=tierOf({cat:c.value,sub:sb.value});$("#g-safety").innerHTML=safetyFields(c.value,sb.value);$("#g-tier").textContent=`${t} item: you earn ${TIER_PTS[t]} points when it's picked up.`};
+    const updCat=()=>{sb.innerHTML=CAT[c.value].subs.map(x=>`<option>${esc(x)}</option>`).join("");updTier()};
+    c.addEventListener("change",updCat);sb.addEventListener("change",updTier);updCat();}
+  save();
+}
+function go(v){view=v;window.scrollTo(0,0);render()}
+
+function ledger(what,amt){S.ledger.push({when:new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}),what,amt})}
+
+document.addEventListener("click",e=>{
+  const nav=e.target.closest("[data-nav]"); if(nav){e.preventDefault();go(nav.dataset.nav);return}
+  const open=e.target.closest("[data-open]"); if(open){detailId=open.dataset.open;go("detail");return}
+  const cp=e.target.closest("[data-catpick]"); if(cp){filter.cat=cp.dataset.catpick; render(); window.scrollTo(0,0); return}
+  const st=e.target.closest("[data-stage]"); if(st){filter.stage=st.dataset.stage; if(filter.stage&&filter.cat&&!CAT[filter.cat].stages.includes(filter.stage))filter.cat=""; render(); return}
+  const chip=e.target.closest("[data-chip]"); if(chip){chip.setAttribute("aria-pressed",chip.getAttribute("aria-pressed")==="true"?"false":"true");return}
+  const a=e.target.closest("[data-act]"); if(!a)return;
+  const act=a.dataset.act,id=a.dataset.id;
+  if(act==="reset"){S=seed();filter={q:"",cat:"",dist:"5",stage:""};go("feed");toast("Demo reset");return}
+  if(act==="saveSearch"){const label=(filter.q||filter.cat||"Everything")+` within ${filter.dist} miles`;if(!S.saved.includes(label))S.saved.push(label);render();toast("Search saved. We'll alert you about new matches.");return}
+  if(act==="interest"){S.interests[id]=[...document.querySelectorAll('#chipset [aria-pressed="true"]')].map(b=>b.dataset.chip);render();toast("You're in the draw");return}
+  if(act==="withdraw"){delete S.interests[id];render();toast("Interest withdrawn, no penalty");return}
+  if(act==="draw"){
+    const l=S.listings.find(x=>x.id===id);
+    const others=l.interested, myW=S.me.received?0.75:1.25, p=l.mode==="First come"?1:Math.max(.35,myW/(myW+others*0.5));
+    const won=Math.random()<p||others===0;
+    if(won){S.holds.push({id:"H"+Date.now(),listingId:id,state:"offered",acceptBy:Date.now()+6*3600e3,slot:null,messages:[{sys:true,t:`${l.owner} was notified that you won. Chat stays in the app; phone numbers and links are hidden.`}]});delete S.interests[id];go("pickups");toast("You won the draw");}
+    else{delete S.interests[id];l.gone=true;render();toast(`Not this time. ${NEIGHBORS[Math.floor(Math.random()*NEIGHBORS.length)]} was picked. You're first backup if they don't accept.`);}
+    return}
+  const h=S.holds.find(x=>x.id===id);
+  if(act==="accept"){h.state="accepted";render();toast("Accepted. Pick a time.");return}
+  if(act==="decline"){h.state="released";h.result="You passed. It went to the next person, with no penalty because you said so in time.";render();return}
+  if(act==="slot"){h.slot=a.dataset.slot;h.messages.push({sys:true,t:`Pickup set for ${h.slot}. Reminders go out 2 hours and 30 minutes before.`});render();return}
+  if(act==="cancel"){h.state="released";S.me.reliability=Math.max(0,S.me.reliability-3);h.result="Cancelled early. Reliability -3. The item went to the next person.";render();return}
+  if(act==="declineAtPickup"){h.state="released";h.result="Declined at pickup because it didn't match the listing. No points moved and no penalty. The giver's listing goes to review.";render();return}
+  if(act==="gotit"){
+    const l=S.listings.find(x=>x.id===h.listingId),t=tierOf(l),cost=TIER_PTS[t];
+    let note;
+    if(S.me.balance>=cost){S.me.balance-=cost;ledger(`Received: ${l.title}`,-cost);note=`${cost} points spent.`}
+    else if(t==="Small"&&S.me.floorSmall>0){S.me.floorSmall--;ledger(`Received with free allowance: ${l.title}`,0);note="Used your free allowance, no points spent."}
+    else if(t==="Medium"&&S.me.floorMedium>0){S.me.floorMedium--;ledger(`Received with free allowance: ${l.title}`,0);note="Used your free allowance, no points spent."}
+    else {const spend=S.me.balance;S.me.balance=0;ledger(`Received: ${l.title}`,-spend);note=`Balance went to 0 for this one item.`}
+    S.me.received+=t==="Large"?2:1;S.me.reliability=Math.min(100,S.me.reliability+3);l.gone=true;
+    h.state="done";h.result=`Handoff confirmed. ${note} Reliability +3. Rate the exchange in the real app.`;render();toast("Enjoy it!");return}
+});
+document.addEventListener("input",e=>{
+  if(e.target.id==="q"){filter.q=e.target.value;const pos=e.target.selectionStart;render();const q=$("#q");q.focus();q.setSelectionRange(pos,pos)}
+});
+document.addEventListener("change",e=>{
+  if(e.target.id==="cat"){filter.cat=e.target.value;render()}
+  if(e.target.id==="dist"){filter.dist=e.target.value;render()}
+});
+document.addEventListener("submit",e=>{
+  e.preventDefault();
+  if(e.target.id==="giveForm"){
+    const r=checkGive();const box=$("#g-msg");
+    if(r.errs.length){box.innerHTML=r.errs.map(x=>`<div class="note bad">${esc(x)}</div>`).join("");return}
+    const id="M"+Date.now(),now=Date.now(),mode=$("#g-mode").value;
+    S.listings.unshift({id,title:r.title,cat:r.cat,sub:r.sub,cond:$("#g-cond").value,size:$("#g-size").value.trim(),dist:0,owner:"You",interested:0,mode,closes:mode==="First come"?null:now+(+$("#g-window").value)*3600e3,pickup:$("#g-pickup").value,safety:r.badges,desc:$("#g-desc").value.trim()||"No extra details."});
+    S.mine.push(id);
+    box.innerHTML=r.warns.map(x=>`<div class="note warn">${esc(x)}</div>`).join("")+`<div class="note ok">Published. Neighbors with a matching saved search were alerted.</div>`;
+    $("#giveForm").reset();setTimeout(()=>{detailId=id;go("detail")},900);
+    save();return}
+  if(e.target.id==="reqForm"){
+    const what=$("#r-what").value.trim();
+    if(!what){$("#r-msg").innerHTML=`<div class="note bad">Say what you need.</div>`;return}
+    const ban=BANNED.find(([k])=>what.toLowerCase().includes(k));
+    if(ban){$("#r-msg").innerHTML=`<div class="note bad">${esc(ban[1])}</div>`;return}
+    S.myRequests.push({what,by:$("#r-by").value});render();toast("Request posted");return}
+  const cid=e.target.dataset.chat;
+  if(cid){const h=S.holds.find(x=>x.id===cid);const inp=$("#msg-"+cid);let t=inp.value.trim();if(!t)return;
+    let masked=t.replace(/(\+?\d[\d\s().-]{6,}\d)/g,"[number hidden]").replace(/https?:\/\/\S+/g,"[link hidden]");
+    if(/venmo|zelle|cash ?app|paypal|\$\d/i.test(t)){h.messages.push({sys:true,t:"Payment requests aren't allowed. Bumpalong is free."});}
+    else h.messages.push({me:true,t:masked});
+    if(masked!==t)h.messages.push({sys:true,t:"Phone numbers and links are hidden until pickup is confirmed."});
+    render();const c=$("#chat-"+cid);if(c)c.scrollTop=c.scrollHeight;}
+});
+setInterval(()=>{document.querySelectorAll("[data-closes]").forEach(el=>{el.textContent=fmtLeft(+el.dataset.closes-Date.now())})},30000);
+render();
+})();
+</script>

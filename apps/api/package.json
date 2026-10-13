@@ -1,0 +1,25 @@
+{
+  "name": "@bumpalong/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bumpalong API: listings, claims, holds and the points ledger.",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "tsx": "^4.23.15",
+    "typescript": "5.9",
+    "vitest": "^5.0.4"
+  },
+  "dependencies": {
+    "@bumpalong/core": "0.1.0",
+    "fastify": "^5.6.0"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "bumpalong",
+  "private": true,
+  "description": "Bumpalong: give and get pregnancy, postpartum and baby items free from neighbors.",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm test --workspaces --if-present",
+    "dev:api": "npm run dev -w @bumpalong/api"
+  },
+  "engines": { "node": ">=20" }
+}
