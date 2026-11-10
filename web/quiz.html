@@ -1,0 +1,243 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><meta name="claude:viewport-fit-sides" content="cover">
+<title>Bumpalong Hand-Me-Down Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: one centered column, one screen at a time. Welcome -> five questions -> result.
+   Palette: Bumpalong's sage green, with one soft color per result type. */
+:root{
+  --bg:#F3F6F4; --surface:#FFFFFF; --sunk:#E7EEEA; --line:#D5DFDA;
+  --ink:#1D2A27; --muted:#5B6B66;
+  --brand:#2E5E52; --brand-ink:#FFFFFF; --brand-soft:#DCEAE4;
+  --c-stroller:#CFE3DC; --c-kit:#F2D6D8; --c-clothes:#D3DFEE; --c-pillow:#E2DDF0; --c-toys:#F3E4BE;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Figtree","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121816; --surface:#1A2320; --sunk:#222D29; --line:#2F3C37;
+  --ink:#E6EEEA; --muted:#9DB0A9;
+  --brand:#7CC0AC; --brand-ink:#0F1A17; --brand-soft:#23382F;
+  --c-stroller:#2A4A3F; --c-kit:#4F3235; --c-clothes:#2C3F57; --c-pillow:#3D3558; --c-toys:#54441F;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121816; --surface:#1A2320; --sunk:#222D29; --line:#2F3C37;
+  --ink:#E6EEEA; --muted:#9DB0A9;
+  --brand:#7CC0AC; --brand-ink:#0F1A17; --brand-soft:#23382F;
+  --c-stroller:#2A4A3F; --c-kit:#4F3235; --c-clothes:#2C3F57; --c-pillow:#3D3558; --c-toys:#54441F;
+  color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5;
+  padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-height:100%}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+p{margin:0}
+.wrap{max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:22px;min-width:0}
+.brand{font-family:var(--display);font-weight:700;color:var(--brand);letter-spacing:.01em}
+.eyebrow{font-size:.78rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+.screen{display:flex;flex-direction:column;gap:20px;animation:rise .38s ease both}
+.screen:focus{outline:none}
+h1{font-size:clamp(2.1rem,9vw,2.9rem);font-weight:700}
+h2{font-size:clamp(1.45rem,6vw,1.85rem);font-weight:700}
+.lead{font-size:1.08rem;color:var(--muted)}
+
+.stack-art{display:flex;justify-content:center;gap:10px;padding:18px 8px;background:var(--surface);border:1px solid var(--line);border-radius:24px}
+.chip-ico{width:clamp(48px,15vw,66px);aspect-ratio:1;border-radius:50%;display:grid;place-items:center;color:var(--ink);animation:bob 2.6s ease-in-out infinite}
+.chip-ico svg{width:56%;height:56%}
+.chip-ico:nth-child(1){background:var(--c-stroller)}
+.chip-ico:nth-child(2){background:var(--c-kit);animation-delay:.25s}
+.chip-ico:nth-child(3){background:var(--c-clothes);animation-delay:.5s}
+.chip-ico:nth-child(4){background:var(--c-pillow);animation-delay:.75s}
+.chip-ico:nth-child(5){background:var(--c-toys);animation-delay:1s}
+
+.btn{font:inherit;font-weight:600;border:2px solid var(--brand);background:var(--brand);color:var(--brand-ink);border-radius:999px;padding:14px 26px;cursor:pointer;min-height:52px;transition:transform .12s ease,background .15s ease}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:transparent;color:var(--brand)}
+.btn:focus-visible,.ans:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+.row{display:flex;flex-wrap:wrap;gap:12px}
+.row .btn{flex:1 1 150px}
+
+.bar{display:flex;gap:6px}
+.bar i{flex:1;height:8px;border-radius:99px;background:var(--sunk);transition:background .25s ease}
+.bar i.done{background:var(--brand)}
+.bar i.now{background:var(--brand);opacity:.45}
+.answers{display:flex;flex-direction:column;gap:12px;padding:0;margin:0;list-style:none}
+.ans{width:100%;text-align:left;font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:18px;padding:16px 18px;cursor:pointer;min-height:56px;transition:transform .12s ease,border-color .15s ease,background .15s ease;animation:rise .35s ease both}
+.ans:hover{border-color:var(--brand)}
+.ans:active{transform:scale(.985)}
+.ans.picked{border-color:var(--brand);background:var(--brand-soft)}
+.answers li:nth-child(2) .ans{animation-delay:.05s}
+.answers li:nth-child(3) .ans{animation-delay:.1s}
+.answers li:nth-child(4) .ans{animation-delay:.15s}
+
+.result-card{border-radius:28px;padding:26px 22px;display:flex;flex-direction:column;gap:16px;align-items:flex-start;color:var(--ink)}
+.result-ico{width:84px;aspect-ratio:1;border-radius:50%;background:var(--surface);display:grid;place-items:center;animation:pop .55s cubic-bezier(.3,1.6,.5,1) both}
+.result-ico svg{width:54%;height:54%}
+.tag{font-weight:600;font-size:1.05rem}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-size:.84rem;font-weight:600;background:var(--surface);border-radius:999px;padding:5px 12px}
+.facts{display:flex;flex-direction:column;gap:6px;font-size:.96rem}
+.facts b{font-weight:600}
+.copybox{width:100%;font:inherit;font-size:.92rem;color:var(--ink);background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:12px;resize:none}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);border-radius:999px;padding:10px 18px;font-weight:600;font-size:.92rem;animation:rise .25s ease both;z-index:20;max-width:calc(100% - 32px);text-align:center}
+canvas#fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:15}
+
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.4) rotate(-12deg)}to{opacity:1;transform:none}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="wrap">
+  <div class="brand">Bumpalong</div>
+
+  <section class="screen" id="welcome" tabindex="-1" aria-labelledby="w-h">
+    <div class="stack-art" aria-hidden="true" id="art"></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <h1 id="w-h">Which hand-me-down are you?</h1>
+      <p class="lead">Five quick questions to find out which much-loved baby item matches your personality.</p>
+    </div>
+    <button class="btn" id="start" type="button">Start the quiz</button>
+    <p class="muted" style="font-size:.9rem">Takes about a minute. Nothing is saved or sent anywhere.</p>
+  </section>
+
+  <section class="screen" id="quiz" tabindex="-1" hidden aria-labelledby="q-h">
+    <div class="bar" id="bar" aria-hidden="true"></div>
+    <div class="eyebrow" id="count"></div>
+    <h2 id="q-h"></h2>
+    <ul class="answers" id="answers"></ul>
+  </section>
+
+  <section class="screen" id="result" tabindex="-1" hidden aria-labelledby="r-h">
+    <div class="eyebrow">You are</div>
+    <div class="result-card" id="card">
+      <div class="result-ico" id="r-ico" aria-hidden="true"></div>
+      <h2 id="r-h"></h2>
+      <p class="tag" id="r-tag"></p>
+      <p id="r-desc"></p>
+      <div class="facts">
+        <div><b>Pairs well with:</b> <span id="r-pair"></span></div>
+        <div id="r-second-row"><b>Close second:</b> <span id="r-second"></span></div>
+      </div>
+      <div class="meta"><span class="pill" id="r-tier"></span><span class="pill">Free to a good home</span></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="copy" type="button">Copy result</button>
+      <button class="btn ghost" id="again" type="button">Play again</button>
+    </div>
+    <textarea class="copybox" id="copybox" rows="3" readonly hidden aria-label="Result text to copy"></textarea>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function(){
+const ICON={
+  stroller:'<path d="M6 16a2 2 0 1 0 4 0 2 2 0 1 0-4 0M15 16a2 2 0 1 0 4 0 2 2 0 1 0-4 0M5 6h3l2 8h8l2-6H9"/>',
+  kit:'<path d="M12 20s-7-4.5-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.5-7 10-7 10z"/>',
+  clothes:'<path d="M8 4 4 7l2 3 2-1v11h8V9l2 1 2-3-4-3-2 2h-4z"/>',
+  pillow:'<path d="M4 15c0-4 3-7 8-7s8 3 8 7-3 4-8 4-8 0-8-4z"/><path d="M8 11c1-1 2-1.5 4-1.5"/>',
+  toys:'<circle cx="12" cy="12" r="7"/><path d="M12 5v14M5 12h14"/>'
+};
+const svg=k=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICON[k]}</svg>`;
+const TYPES={
+  stroller:{name:"The Trusty Stroller",tag:"Been everywhere. Still rolling.",desc:"You're the one who shows up with the truck, the snacks and a plan for the hill. Everyone borrows your steadiness, and you never make it weird. A small scuff on the handlebar just means you've lived.",pair:"A neighbor with the hospital bag already by the door",tier:"Large · 300 pts"},
+  kit:{name:"The Unopened Recovery Kit",tag:"Prepared, sealed and ready to give.",desc:"You read the label, you checked the date, and you bought two by mistake because planning is how you show love. You hand things over in perfect condition, and somebody's hardest week gets a little easier.",pair:"A new parent who forgot to pack their own",tier:"Small · 50 pts"},
+  clothes:{name:"The Bag of 0 to 3 Month Clothes",tag:"Outgrown fast, loved forever.",desc:"You keep things moving. Nothing stays at your house long, because you know the right size is only right for a few weeks. Washed, folded and passed on at exactly the right moment.",pair:"A baby due next month",tier:"Small · 50 pts"},
+  pillow:{name:"The Pregnancy Pillow",tag:"Soft, supportive, sees everything.",desc:"You're who people call at 2 a.m. when it's hard. You don't fix things, you hold them up. You saved a lot of third trimesters, and you'd do it again tomorrow.",pair:"Anyone who hasn't slept flat in months",tier:"Medium · 150 pts"},
+  toys:{name:"The Wooden Stacking Toys",tag:"Teeth marks included.",desc:"You're playful, durable and a little bit chewed. Rainy days get better when you're around, and you've never once minded the mess. You turn into everyone's favorite thing on the floor.",pair:"A toddler with big plans",tier:"Small · 50 pts"}
+};
+const COLOR={stroller:"--c-stroller",kit:"--c-kit",clothes:"--c-clothes",pillow:"--c-pillow",toys:"--c-toys"};
+const QS=[
+  {q:"It's 3 a.m. and the baby is up. What are you doing?",a:[["Walking laps until it works.","stroller"],["Following the checklist I wrote at 8 p.m.","kit"],["Making up a song with far too many verses.","toys"],["Changing the outfit. Again. Third time tonight.","clothes"]]},
+  {q:"A neighbor posts \"free crib, first come.\" You…",a:[["Offer to carry it over in my truck.","stroller"],["Ask for the model number so I can check recalls.","kit"],["Send three hearts and a GIF.","toys"],["Message them: \"If it falls through, I'm here.\"","pillow"]]},
+  {q:"Your perfect Saturday looks like…",a:[["A long walk with snacks in every pocket.","stroller"],["Sorting outgrown things into a bag for a neighbor.","clothes"],["Couch, blanket, someone else holding the baby.","pillow"],["Floor time with blocks everywhere.","toys"]]},
+  {q:"Your friends would say you're…",a:[["The one who shows up.","stroller"],["The prepared one.","kit"],["The one who always has the right size.","clothes"],["The one you call when it's hard.","pillow"]]},
+  {q:"Pick a motto.",a:[["Built for the long haul.","stroller"],["Better sealed than sorry.","kit"],["Pass it on while it still fits.","clothes"],["Teeth marks are a sign of love.","toys"]]}
+];
+const $=s=>document.querySelector(s);
+const screens={welcome:$("#welcome"),quiz:$("#quiz"),result:$("#result")};
+let step=0,picks=[],current=null,second=null,toastT=0;
+const reduce=()=>window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+$("#art").innerHTML=Object.keys(ICON).map(k=>`<div class="chip-ico">${svg(k)}</div>`).join("");
+
+function show(name){
+  for(const k in screens) screens[k].hidden=k!==name;
+  const s=screens[name]; s.style.animation="none"; void s.offsetWidth; s.style.animation="";
+  window.scrollTo(0,0); s.focus({preventScroll:true});
+}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function renderQ(){
+  const q=QS[step];
+  $("#count").textContent=`Question ${step+1} of ${QS.length}`;
+  $("#bar").innerHTML=QS.map((_,i)=>`<i class="${i<step?"done":i===step?"now":""}"></i>`).join("");
+  $("#q-h").textContent=q.q;
+  const ul=$("#answers"); ul.innerHTML="";
+  shuffle(q.a).forEach(([text,type])=>{
+    const li=document.createElement("li"),b=document.createElement("button");
+    b.type="button";b.className="ans";b.textContent=text;
+    b.addEventListener("click",()=>pick(b,type));
+    li.appendChild(b);ul.appendChild(li);
+  });
+}
+function pick(btn,type){
+  document.querySelectorAll(".ans").forEach(b=>b.disabled=true);
+  btn.classList.add("picked");
+  picks.push(type);
+  setTimeout(()=>{ if(++step<QS.length){renderQ();show("quiz")} else finish() }, reduce()?0:260);
+}
+function finish(){
+  const n={};picks.forEach(t=>n[t]=(n[t]||0)+1);
+  const ranked=Object.keys(TYPES).sort((a,b)=>{
+    if(n[b]!==n[a]) return (n[b]||0)-(n[a]||0);
+    return picks.lastIndexOf(b)-picks.lastIndexOf(a); // tie: the type picked most recently wins
+  });
+  current=ranked[0]; second=(n[ranked[1]]||0)>0?ranked[1]:null;
+  const t=TYPES[current];
+  $("#card").style.background=`var(${COLOR[current]})`;
+  $("#r-ico").innerHTML=svg(current);
+  $("#r-h").textContent=t.name; $("#r-tag").textContent=t.tag; $("#r-desc").textContent=t.desc;
+  $("#r-pair").textContent=t.pair; $("#r-tier").textContent=t.tier;
+  $("#r-second-row").hidden=!second; if(second) $("#r-second").textContent=TYPES[second].name;
+  $("#copybox").hidden=true;
+  show("result"); confetti();
+}
+function resultText(){
+  const t=TYPES[current];
+  return `I'm ${t.name} on Bumpalong. ${t.tag}`+(second?` Close second: ${TYPES[second].name}.`:"")+` Which hand-me-down are you?`;
+}
+function toast(msg){const el=$("#toast");el.textContent=msg;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,2400)}
+async function copy(){
+  const text=resultText();
+  try{ await navigator.clipboard.writeText(text); toast("Copied. Paste it anywhere."); return }catch(e){}
+  const box=$("#copybox"); box.value=text; box.hidden=false; box.focus(); box.select();
+  let ok=false; try{ ok=document.execCommand("copy") }catch(e){}
+  toast(ok?"Copied. Paste it anywhere.":"Text selected. Press and hold to copy.");
+}
+function confetti(){
+  if(reduce()) return;
+  const c=$("#fx"),ctx=c.getContext("2d"),dpr=window.devicePixelRatio||1;
+  const W=c.width=innerWidth*dpr,H=c.height=innerHeight*dpr;
+  const st=getComputedStyle(document.documentElement);
+  const cols=[...Object.values(COLOR),"--brand"].map(v=>st.getPropertyValue(v).trim()).filter(Boolean);
+  const ps=Array.from({length:90},()=>({x:W/2+(Math.random()-.5)*W*.2,y:H*.32,vx:(Math.random()-.5)*14*dpr,vy:(-Math.random()*13-3)*dpr,r:(4+Math.random()*5)*dpr,a:Math.random()*6,va:(Math.random()-.5)*.4,col:cols[Math.floor(Math.random()*cols.length)]}));
+  const t0=performance.now();
+  (function frame(now){
+    const t=(now-t0)/2600; ctx.clearRect(0,0,W,H);
+    if(t>=1) return;
+    ctx.globalAlpha=1-t*t;
+    for(const p of ps){p.vy+=.35*dpr;p.x+=p.vx;p.y+=p.vy;p.vx*=.992;p.a+=p.va;
+      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.a);ctx.fillStyle=p.col;ctx.fillRect(-p.r/2,-p.r/3,p.r,p.r*.66);ctx.restore()}
+    requestAnimationFrame(frame);
+  })(t0);
+}
+function start(){step=0;picks=[];renderQ();show("quiz")}
+$("#start").addEventListener("click",start);
+$("#again").addEventListener("click",()=>{const c=$("#fx");c.getContext("2d").clearRect(0,0,c.width,c.height);show("welcome")});
+$("#copy").addEventListener("click",copy);
+})();
+</script>
+</body></html>
