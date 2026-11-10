@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Give and get pregnancy, postpartum and baby items free from neighbors.">
+<title>Bumpalong</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Figtree:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 14c1.5-3 3.5-4.5 6-4.5s4.5 1.500 6 4.500"/><circle cx="12" cy="17.500" r="1" fill="currentColor"/></svg></span>Bumpalong<small>Free baby gear, shared</small></div>
+    <nav class="nav" id="nav" aria-label="Main"></nav>
+    <div class="wallet-mini" id="walletMini"></div>
+  </aside>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast" hidden></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<script src="src/backend-supabase.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
